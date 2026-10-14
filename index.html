@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0f6b66">
+<title>Audio to Text</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one column, thumb-first. Big pick button on top, transcript fills the rest, sticky copy bar at the bottom. */
+:root {
+  --bg: #f6f5f2; --surface: #ffffff; --fg: #1d1f22; --muted: #6b6f76; --line: #dcdad4;
+  --accent: #0f6b66; --accent-ink: #ffffff; --accent-soft: #e2f0ee;
+  --warn: #9a5b00; --warn-soft: #fff2dc; --err: #a8322a; --err-soft: #fde9e7;
+  --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #15171a; --surface: #1e2125; --fg: #ebe9e3; --muted: #9a9ea6; --line: #33373d;
+    --accent: #5fc2ba; --accent-ink: #0d1b1a; --accent-soft: #1d3331;
+    --warn: #f0b35a; --warn-soft: #3a2d14; --err: #f28b82; --err-soft: #3d1f1c; color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body {
+  background: var(--bg); color: var(--fg); font: 16px/1.5 var(--font-body);
+  padding-block: calc(16px + env(safe-area-inset-top, 0px)) calc(96px + env(safe-area-inset-bottom, 0px));
+  padding-inline: 16px;
+}
+.wrap { max-width: 720px; margin: 0 auto; display: grid; gap: 14px; }
+header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+h1 { font-size: 20px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
+.engine { font: 11px/1.4 var(--font-mono); color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; white-space: nowrap; }
+
+.pick {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  min-height: 112px; border: 1.5px dashed var(--line); border-radius: 14px; background: var(--surface);
+  cursor: pointer; text-align: center; padding: 16px;
+}
+.pick:active, .pick.over { border-color: var(--accent); background: var(--accent-soft); }
+.pick strong { font-size: 17px; font-weight: 600; }
+.pick span { color: var(--muted); font-size: 13px; }
+.pick input { display: none; }
+.filemeta { font: 12px/1.5 var(--font-mono); color: var(--muted); margin-top: 4px; min-height: 1.5em; }
+
+.status { display: grid; gap: 6px; }
+.bar { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .2s; }
+.msg { font: 13px/1.5 var(--font-mono); color: var(--muted); min-height: 1.5em; }
+.note { border-radius: 10px; padding: 10px 14px; font-size: 14px; }
+.note.warn { background: var(--warn-soft); color: var(--warn); }
+.note.err { background: var(--err-soft); color: var(--err); }
+
+details { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+summary { padding: 12px 14px; cursor: pointer; font-weight: 500; list-style: none; display: flex; justify-content: space-between; }
+summary::-webkit-details-marker { display: none; }
+summary::after { content: "+"; color: var(--muted); }
+details[open] summary::after { content: "–"; }
+.settings { display: grid; gap: 12px; padding: 0 14px 14px; }
+label.field { display: grid; gap: 4px; font-size: 12px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+select, input[type=password], input[type=text] {
+  font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+  padding: 10px 12px; min-height: 44px; width: 100%;
+}
+select:focus-visible, input:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.hint { font-size: 12px; color: var(--muted); text-transform: none; letter-spacing: 0; font-weight: 400; }
+.check { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--fg); text-transform: none; letter-spacing: 0; font-weight: 400; }
+.check input { accent-color: var(--accent); width: 20px; height: 20px; }
+
+.out { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; min-width: 0; }
+.outbar { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--line); font: 12px/1.4 var(--font-mono); color: var(--muted); }
+.transcript { padding: 14px 16px; min-height: 120px; }
+.transcript p { margin: 0; white-space: pre-wrap; }
+.seg { display: grid; grid-template-columns: auto 1fr; gap: 10px; margin-bottom: 8px; }
+.seg time { font: 12px/1.6 var(--font-mono); color: var(--accent); font-variant-numeric: tabular-nums; }
+.seg div[contenteditable], .transcript p[contenteditable] { outline: none; }
+.empty { color: var(--muted); }
+
+.actionbar {
+  position: fixed; left: 0; right: 0; bottom: 0; padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+  background: var(--bg); border-top: 1px solid var(--line); display: flex; gap: 10px; justify-content: center;
+}
+.actionbar > div { display: flex; gap: 10px; width: 100%; max-width: 720px; }
+button {
+  font: inherit; font-weight: 600; color: var(--fg); background: var(--surface); border: 1px solid var(--line);
+  border-radius: 12px; min-height: 50px; padding: 10px 16px; cursor: pointer; flex: 1;
+}
+button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); flex: 2; }
+button:disabled { opacity: .45; cursor: not-allowed; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Audio to Text</h1>
+    <div class="engine" id="engine">Checking…</div>
+  </header>
+
+  <label class="pick" id="pick">
+    <input type="file" id="file" accept="audio/*,video/*,.m4a,.mp3,.wav,.ogg,.webm,.mp4,.aac,.flac">
+    <strong>Tap to choose an audio file</strong>
+    <span>Voice memos, call recordings, MP3, M4A, WAV, video</span>
+    <div class="filemeta" id="filemeta"></div>
+  </label>
+
+  <div class="status">
+    <div class="bar"><i id="barfill"></i></div>
+    <div class="msg" id="msg">Transcription starts as soon as you pick a file.</div>
+    <div id="notes"></div>
+  </div>
+
+  <details id="settings">
+    <summary>Settings</summary>
+    <div class="settings">
+      <label class="field">Mode
+        <select id="mode">
+          <option value="local">On this device · free, private, slower</option>
+          <option value="openai">OpenAI cloud · fast, needs API key</option>
+        </select>
+      </label>
+      <label class="field" id="keyfield" hidden>OpenAI API key
+        <input type="password" id="apikey" placeholder="sk-…" autocomplete="off">
+        <span class="hint">Stored only in this browser. Audio is sent to OpenAI for transcription in this mode.</span>
+      </label>
+      <label class="field" id="modelfield">On-device model
+        <select id="model">
+          <option value="onnx-community/whisper-tiny.en">Tiny · English only · fastest</option>
+          <option value="onnx-community/whisper-base" selected>Base · all languages · balanced</option>
+          <option value="onnx-community/whisper-small">Small · all languages · best, slow</option>
+        </select>
+        <span class="hint">Downloaded once (40–250 MB) and cached on this device.</span>
+      </label>
+      <label class="field">Language
+        <select id="lang">
+          <option value="">Auto-detect</option>
+          <option value="en">English</option>
+          <option value="hi">Hindi</option>
+          <option value="gu">Gujarati</option>
+          <option value="es">Spanish</option>
+          <option value="fr">French</option>
+          <option value="de">German</option>
+          <option value="pt">Portuguese</option>
+          <option value="zh">Chinese</option>
+          <option value="ja">Japanese</option>
+          <option value="ar">Arabic</option>
+        </select>
+      </label>
+      <label class="check"><input type="checkbox" id="showts" checked> Show timestamps</label>
+    </div>
+  </details>
+
+  <div class="out">
+    <div class="outbar"><span id="stats">No transcript yet</span><span id="editnote"></span></div>
+    <div class="transcript" id="transcript"><div class="empty">Your transcript will appear here. You can tap into it to fix words before copying.</div></div>
+  </div>
+</div>
+
+<div class="actionbar"><div>
+  <button class="primary" id="copy" disabled>Copy text</button>
+  <button id="share" disabled>Share</button>
+</div></div>
+
+<script type="module">
+import { pipeline, env } from "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.3.3";
+env.allowLocalModels = false;
+
+const $ = id => document.getElementById(id);
+const fileIn = $("file"), msg = $("msg"), bar = $("barfill"), notes = $("notes"), stats = $("stats"), tEl = $("transcript");
+let file = null, audio = null, result = null, transcriber = null, loadedModel = null, device = "wasm", busy = false;
+
+// Remember settings on this device
+const store = { get: k => { try { return localStorage.getItem(k) } catch { return null } }, set: (k, v) => { try { localStorage.setItem(k, v) } catch {} } };
+for (const id of ["mode", "model", "lang"]) { const v = store.get(id); if (v) $(id).value = v; $(id).addEventListener("change", () => store.set(id, $(id).value)); }
+$("apikey").value = store.get("apikey") || "";
+$("apikey").addEventListener("change", () => store.set("apikey", $("apikey").value.trim()));
+const ts0 = store.get("showts"); if (ts0 !== null) $("showts").checked = ts0 === "1";
+$("showts").addEventListener("change", () => { store.set("showts", $("showts").checked ? "1" : "0"); if (result) render(); });
+
+function syncMode() { const cloud = $("mode").value === "openai"; $("keyfield").hidden = !cloud; $("modelfield").hidden = cloud; }
+$("mode").addEventListener("change", syncMode); syncMode();
+
+(async () => {
+  try { if (navigator.gpu && await navigator.gpu.requestAdapter()) device = "webgpu"; } catch {}
+  $("engine").textContent = device === "webgpu" ? "GPU" : "CPU";
+})();
+
+fileIn.addEventListener("change", () => { if (fileIn.files[0]) start(fileIn.files[0]); });
+const pick = $("pick");
+["dragenter", "dragover"].forEach(ev => pick.addEventListener(ev, e => { e.preventDefault(); pick.classList.add("over"); }));
+["dragleave", "drop"].forEach(ev => pick.addEventListener(ev, e => { e.preventDefault(); pick.classList.remove("over"); }));
+pick.addEventListener("drop", e => { if (e.dataTransfer.files[0]) start(e.dataTransfer.files[0]); });
+
+function setMsg(t) { msg.textContent = t; }
+function setBar(p) { bar.style.width = Math.max(0, Math.min(100, p)) + "%"; }
+function note(kind, text) { const d = document.createElement("div"); d.className = "note " + kind; d.textContent = text; notes.replaceChildren(d); }
+function clearNote() { notes.replaceChildren(); }
+const fmtDur = s => { const m = Math.floor(s / 60), r = Math.round(s % 60); return m ? `${m}m ${r}s` : `${r}s`; };
+const ts = s => { const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), r = Math.floor(s % 60); return (h ? h + ":" : "") + String(m).padStart(2, "0") + ":" + String(r).padStart(2, "0"); };
+
+async function start(f) {
+  if (busy) return;
+  busy = true; file = f; audio = null; result = null; clearNote(); setBar(0);
+  $("filemeta").textContent = `${f.name} · ${(f.size / 1048576).toFixed(1)} MB`;
+  ["copy", "share"].forEach(id => $(id).disabled = true);
+  const t0 = performance.now();
+  try {
+    if ($("mode").value === "openai") await viaOpenAI(f); else await viaLocal(f);
+    const secs = (performance.now() - t0) / 1000;
+    setBar(100); setMsg(`Done in ${fmtDur(secs)}.`);
+    render();
+  } catch (e) {
+    console.error(e); note("err", "Couldn't transcribe this file. " + friendly(e)); setMsg("Stopped.");
+  } finally { busy = false; fileIn.value = ""; }
+}
+
+// --- Cloud mode ---
+async function viaOpenAI(f) {
+  const key = $("apikey").value.trim();
+  if (!key) { $("settings").open = true; throw new Error("Add your OpenAI API key in Settings, or switch Mode to on-device."); }
+  if (f.size > 25 * 1048576) throw new Error("OpenAI accepts files up to 25 MB. Use on-device mode for this one.");
+  setMsg("Uploading to OpenAI…"); setBar(20);
+  const fd = new FormData();
+  fd.append("file", f, f.name); fd.append("model", "whisper-1"); fd.append("response_format", "verbose_json");
+  fd.append("timestamp_granularities[]", "segment");
+  if ($("lang").value) fd.append("language", $("lang").value);
+  const r = await fetch("https://api.openai.com/v1/audio/transcriptions", { method: "POST", headers: { Authorization: "Bearer " + key }, body: fd });
+  setBar(80);
+  if (!r.ok) { const t = await r.text(); throw new Error(`OpenAI ${r.status}: ${t.slice(0, 160)}`); }
+  const j = await r.json();
+  audio = { seconds: j.duration || 0 };
+  result = { text: j.text, chunks: (j.segments || []).map(s => ({ timestamp: [s.start, s.end], text: s.text })) };
+}
+
+// --- On-device mode ---
+async function decode(f) {
+  const buf = await f.arrayBuffer();
+  const ctx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+  let ab;
+  try { ab = await new Promise((res, rej) => { const p = ctx.decodeAudioData(buf, res, rej); if (p?.then) p.then(res, rej); }); }
+  finally { ctx.close(); }
+  const n = ab.length, ch = ab.numberOfChannels, out = new Float32Array(n);
+  for (let c = 0; c < ch; c++) { const d = ab.getChannelData(c); for (let i = 0; i < n; i++) out[i] += d[i] / ch; }
+  return { samples: out, seconds: ab.duration };
+}
+async function getTranscriber(model) {
+  if (transcriber && loadedModel === model) return transcriber;
+  if (transcriber) { await transcriber.dispose?.(); transcriber = null; }
+  const files = {};
+  const progress = p => {
+    if (p.status === "progress") {
+      files[p.file] = [p.loaded || 0, p.total || 0];
+      const done = Object.values(files).reduce((a, v) => a + v[0], 0), tot = Object.values(files).reduce((a, v) => a + v[1], 0);
+      if (tot) { setBar(done / tot * 100); setMsg(`Downloading model (one time)… ${(done / 1048576).toFixed(0)} / ${(tot / 1048576).toFixed(0)} MB`); }
+    }
+  };
+  const make = dev => pipeline("automatic-speech-recognition", model, {
+    device: dev, dtype: dev === "webgpu" ? { encoder_model: "fp32", decoder_model_merged: "q4" } : "q8", progress_callback: progress,
+  });
+  try { transcriber = await make(device); }
+  catch (e) {
+    if (device !== "webgpu") throw e;
+    device = "wasm"; $("engine").textContent = "CPU"; transcriber = await make("wasm");
+  }
+  loadedModel = model; return transcriber;
+}
+async function viaLocal(f) {
+  const model = $("model").value, lang = $("lang").value;
+  setMsg("Decoding audio…");
+  audio = await decode(f);
+  if (audio.seconds > 20 * 60) note("warn", `This is ${Math.round(audio.seconds / 60)} minutes long. On a phone this may take a while; cloud mode is much faster for long files.`);
+  const asr = await getTranscriber(model);
+  setBar(0); setMsg(`Transcribing ${fmtDur(audio.seconds)}…`);
+  const opts = { chunk_length_s: 30, stride_length_s: 5, return_timestamps: true };
+  if (lang && !model.endsWith(".en")) { opts.language = lang; opts.task = "transcribe"; }
+  const chunks = Math.max(1, Math.ceil(audio.seconds / 25)); let seen = 0;
+  opts.chunk_callback = () => { seen++; setBar(seen / chunks * 100); setMsg(`Transcribing… ${Math.min(seen, chunks)} of ${chunks}`); };
+  result = await asr(audio.samples, opts);
+}
+
+function friendly(e) {
+  const s = String(e?.message || e);
+  if (/decodeAudioData|decod/i.test(s)) return "This browser couldn't read the audio format. Try cloud mode, or convert it to MP3.";
+  if (/Load failed|fetch|network/i.test(s)) return "A download failed. Check your connection and try again.";
+  return s.slice(0, 220);
+}
+function segments() {
+  if (!result) return [];
+  const ch = result.chunks?.length ? result.chunks : [{ timestamp: [0, audio?.seconds || 0], text: result.text }];
+  return ch.map(c => ({ start: c.timestamp[0] ?? 0, end: c.timestamp[1] ?? 0, text: (c.text || "").trim() })).filter(c => c.text);
+}
+function render() {
+  const segs = segments(); tEl.replaceChildren();
+  if (!segs.length) { tEl.innerHTML = '<div class="empty">No speech was detected.</div>'; return; }
+  if ($("showts").checked) {
+    for (const s of segs) {
+      const row = document.createElement("div"); row.className = "seg";
+      const t = document.createElement("time"); t.textContent = ts(s.start);
+      const d = document.createElement("div"); d.contentEditable = "true"; d.textContent = s.text;
+      d.addEventListener("input", () => { s.text = d.textContent; });
+      row.append(t, d); tEl.append(row);
+    }
+  } else {
+    const p = document.createElement("p"); p.contentEditable = "true"; p.textContent = segs.map(s => s.text).join(" "); tEl.append(p);
+  }
+  const words = segs.map(s => s.text).join(" ").split(/\s+/).filter(Boolean).length;
+  stats.textContent = `${words} words · ${fmtDur(audio?.seconds || 0)}`;
+  $("editnote").textContent = "tap text to edit";
+  $("copy").disabled = false; $("share").disabled = !navigator.share;
+}
+function plainText() {
+  if (!$("showts").checked) return (tEl.textContent || "").trim();
+  return segments().map(s => `[${ts(s.start)}] ${s.text}`).join("\n");
+}
+$("copy").addEventListener("click", async () => {
+  try { await navigator.clipboard.writeText(plainText()); $("copy").textContent = "Copied ✓"; setTimeout(() => $("copy").textContent = "Copy text", 1500); }
+  catch { const r = document.createRange(); r.selectNodeContents(tEl); const s = getSelection(); s.removeAllRanges(); s.addRange(r); note("warn", "Text selected. Use Copy from the menu."); }
+});
+$("share").addEventListener("click", () => navigator.share?.({ title: "Transcript", text: plainText() }).catch(() => {}));
+</script>
+</body>
+</html>
