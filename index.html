@@ -37,6 +37,14 @@ header { display: flex; align-items: center; justify-content: space-between; gap
 h1 { font-size: 20px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
 .engine { font: 11px/1.4 var(--font-mono); color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; white-space: nowrap; }
 
+.setup { background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 14px; padding: 14px 16px; display: grid; gap: 8px; }
+.setup p, .setup ol { margin: 0; font-size: 14px; }
+.setup ol { padding-left: 20px; display: grid; gap: 4px; }
+.setup a { color: var(--accent); font-weight: 500; }
+.setup .row { display: flex; gap: 8px; }
+.setup .row input { flex: 1; min-width: 0; }
+.setup .row button { flex: 0 0 auto; min-height: 44px; }
+.setup .hint { color: var(--muted); font-size: 12px; }
 .pick {
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
   min-height: 112px; border: 1.5px dashed var(--line); border-radius: 14px; background: var(--surface);
@@ -102,6 +110,20 @@ button:disabled { opacity: .45; cursor: not-allowed; }
     <div class="engine" id="engine">Checking…</div>
   </header>
 
+  <div class="setup" id="setup" hidden>
+    <strong>One-time setup</strong>
+    <p>Paste an OpenAI API key so transcription runs in the cloud. It takes about 20 seconds for an hour of audio and costs about 36¢ per hour. The key is saved only on this phone.</p>
+    <ol>
+      <li>Open <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">platform.openai.com/api-keys</a> and tap <b>Create new secret key</b></li>
+      <li>Copy it and paste it here</li>
+    </ol>
+    <div class="row">
+      <input type="password" id="setupkey" placeholder="sk-…" autocomplete="off" aria-label="OpenAI API key">
+      <button class="primary" id="savekey" type="button">Save</button>
+    </div>
+    <p class="hint">No key? Open Settings and switch to on-device mode. That works offline but only for clips under about 15 minutes on a phone.</p>
+  </div>
+
   <label class="pick" id="pick">
     <input type="file" id="file" accept="audio/*,video/*,.m4a,.mp3,.wav,.ogg,.webm,.mp4,.aac,.flac">
     <strong>Tap to choose an audio file</strong>
@@ -111,7 +133,7 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 
   <div class="status">
     <div class="bar"><i id="barfill"></i></div>
-    <div class="msg" id="msg">Transcription starts as soon as you pick a file.</div>
+    <div class="msg" id="msg">Transcription starts as soon as you pick a file. Hour-long files take about 20 seconds in cloud mode.</div>
     <div id="notes"></div>
   </div>
 
@@ -120,8 +142,8 @@ button:disabled { opacity: .45; cursor: not-allowed; }
     <div class="settings">
       <label class="field">Mode
         <select id="mode">
-          <option value="local">On this device · free, private, slower</option>
-          <option value="openai">OpenAI cloud · fast, needs API key</option>
+          <option value="openai" selected>OpenAI cloud · fast, needs API key</option>
+          <option value="local">On this device · free, offline, short clips only</option>
         </select>
       </label>
       <label class="field" id="keyfield" hidden>OpenAI API key
@@ -182,8 +204,18 @@ $("apikey").addEventListener("change", () => store.set("apikey", $("apikey").val
 const ts0 = store.get("showts"); if (ts0 !== null) $("showts").checked = ts0 === "1";
 $("showts").addEventListener("change", () => { store.set("showts", $("showts").checked ? "1" : "0"); if (result) render(); });
 
-function syncMode() { const cloud = $("mode").value === "openai"; $("keyfield").hidden = !cloud; $("modelfield").hidden = cloud; }
+function syncMode() {
+  const cloud = $("mode").value === "openai";
+  $("keyfield").hidden = !cloud; $("modelfield").hidden = cloud;
+  $("setup").hidden = !(cloud && !$("apikey").value.trim());
+}
 $("mode").addEventListener("change", syncMode); syncMode();
+$("savekey").addEventListener("click", () => {
+  const k = $("setupkey").value.trim();
+  if (!k.startsWith("sk-")) { note("err", "That doesn't look like an OpenAI key. It starts with sk-."); return; }
+  $("apikey").value = k; store.set("apikey", k); clearNote(); syncMode(); setMsg("Key saved. Pick a file to transcribe.");
+});
+$("apikey").addEventListener("input", syncMode);
 
 (async () => {
   try { if (navigator.gpu && await navigator.gpu.requestAdapter()) device = "webgpu"; } catch {}
@@ -272,8 +304,12 @@ async function getTranscriber(model) {
 async function viaLocal(f) {
   const model = $("model").value, lang = $("lang").value;
   setMsg("Decoding audio…");
+  const estMin = f.size / 1048576 / 1.0; // rough: ~1 MB per minute for typical MP3/M4A
+  if (/iPhone|iPad|Android/i.test(navigator.userAgent) && estMin > 15)
+    throw new Error("This file is too long for on-device transcription on a phone (the tab runs out of memory). Switch Mode to OpenAI cloud in Settings.");
   audio = await decode(f);
-  if (audio.seconds > 20 * 60) note("warn", `This is ${Math.round(audio.seconds / 60)} minutes long. On a phone this may take a while; cloud mode is much faster for long files.`);
+  if (audio.seconds > 15 * 60 && /iPhone|iPad|Android/i.test(navigator.userAgent)) { audio = null; throw new Error("This recording is over 15 minutes. On a phone, switch Mode to OpenAI cloud in Settings."); }
+  if (audio.seconds > 20 * 60) note("warn", `This is ${Math.round(audio.seconds / 60)} minutes long. This may take a while; cloud mode is much faster.`);
   const asr = await getTranscriber(model);
   setBar(0); setMsg(`Transcribing ${fmtDur(audio.seconds)}…`);
   const opts = { chunk_length_s: 30, stride_length_s: 5, return_timestamps: true };
