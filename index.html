@@ -207,11 +207,22 @@ const PROVIDERS = {
             title: "One-time setup", desc: "Transcription runs on OpenAI. About 36¢ per hour of audio, billed to your OpenAI account. The key is saved only on this phone.", link: "platform.openai.com/api-keys", hint: "Files up to 25 MB." },
 };
 const keyFor = m => store.get("apikey_" + m) || "";
-$("apikey").addEventListener("change", () => store.set("apikey_" + $("mode").value, $("apikey").value.trim()));
+// A key in the link (#k=gsk_…) is saved and kept, so a Home Screen bookmark works on its own.
+(() => {
+  const h = decodeURIComponent(location.hash.slice(1));
+  const mm = h.match(/^k=(gsk_\S+|sk-\S+)$/);
+  if (mm) { const k = mm[1], m = k.startsWith("gsk_") ? "groq" : "openai"; store.set("apikey_" + m, k); store.set("mode", m); }
+})();
+function keepKeyInLink() {
+  const m = $("mode").value, k = PROVIDERS[m] ? keyFor(m) : "";
+  try { history.replaceState(null, "", k ? "#k=" + k : location.pathname); } catch {}
+}
+$("apikey").addEventListener("change", () => { store.set("apikey_" + $("mode").value, $("apikey").value.trim()); keepKeyInLink(); });
 const ts0 = store.get("showts"); if (ts0 !== null) $("showts").checked = ts0 === "1";
 $("showts").addEventListener("change", () => { store.set("showts", $("showts").checked ? "1" : "0"); if (result) render(); });
 
 function syncMode() {
+  { const sm = store.get("mode"); if (sm && $("mode").value !== sm && PROVIDERS[sm]) $("mode").value = sm; }
   const m = $("mode").value, p = PROVIDERS[m], cloud = !!p;
   $("keyfield").hidden = !cloud; $("modelfield").hidden = cloud;
   if (cloud) {
@@ -222,11 +233,12 @@ function syncMode() {
   }
   $("setup").hidden = !(cloud && !keyFor(m));
 }
-$("mode").addEventListener("change", syncMode); syncMode();
+$("mode").addEventListener("change", () => { syncMode(); keepKeyInLink(); }); syncMode(); keepKeyInLink();
 $("savekey").addEventListener("click", () => {
   const m = $("mode").value, p = PROVIDERS[m], k = $("setupkey").value.trim();
   if (!k.startsWith(p.prefix)) { note("err", `That doesn't look like a ${p.name} key. It starts with ${p.prefix}`); return; }
-  store.set("apikey_" + m, k); $("setupkey").value = ""; clearNote(); syncMode(); setMsg("Key saved. Pick a file to transcribe.");
+  store.set("apikey_" + m, k); $("setupkey").value = ""; clearNote(); syncMode(); keepKeyInLink();
+  setMsg("Key saved. Now tap Share → Add to Home Screen, then pick a file.");
 });
 $("apikey").addEventListener("input", syncMode);
 
