@@ -35,7 +35,7 @@ body {
 .wrap { max-width: 720px; margin: 0 auto; display: grid; gap: 14px; }
 header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 h1 { font-size: 20px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
-.engine { font: 11px/1.4 var(--font-mono); color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; white-space: nowrap; }
+.engine { font: 11px/1.4 var(--font-mono); color: var(--muted); font-variant-numeric: tabular-nums; text-transform: uppercase; letter-spacing: 0.08em; white-space: nowrap; }
 
 .setup { background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 14px; padding: 14px 16px; display: grid; gap: 8px; }
 .setup p, .setup ol { margin: 0; font-size: 14px; }
@@ -121,7 +121,7 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 <div class="wrap">
   <header>
     <h1>Audio to Text</h1>
-    <div class="engine" id="engine">Checking…</div>
+    <div class="engine"><span id="engine">Checking…</span> · v4</div>
   </header>
 
   <div class="setup" id="setup" hidden>
@@ -161,8 +161,8 @@ button:disabled { opacity: .45; cursor: not-allowed; }
     <div class="settings">
       <label class="field">Mode
         <select id="mode">
-          <option value="groq" selected>Groq cloud · free, fast</option>
-          <option value="deepgram">Deepgram cloud · speaker labels</option>
+          <option value="groq" selected>Groq · free (default)</option>
+          <option value="deepgram">Deepgram · exact speaker labels, uses credit</option>
           <option value="openai">OpenAI cloud · paid, fast</option>
           <option value="local">On this device · free, offline, short clips only</option>
         </select>
@@ -226,15 +226,15 @@ const store = { get: k => { try { return localStorage.getItem(k) } catch { retur
 for (const id of ["mode", "model", "lang", "terms"]) { const v = store.get(id); if (v) $(id).value = v; $(id).addEventListener("change", () => store.set(id, $(id).value)); }
 const PROVIDERS = {
   groq:   { name: "Groq", url: "https://api.groq.com/openai/v1/audio/transcriptions", model: "whisper-large-v3", prefix: "gsk_", keys: "https://console.groq.com/keys",
-            title: "One-time setup (free)", desc: "Transcription runs on Groq's free Whisper service. Takes about 15 seconds for an hour of audio. No card needed. The key is saved only on this phone.", link: "console.groq.com/keys", hint: "Free tier covers about 8 hours of audio a day, files up to 25 MB." },
+            title: "One-time setup (free)", desc: "Transcription runs on Groq's free Whisper service. Takes about 15 seconds for an hour of audio. No card needed. The key is saved only on this phone.", link: "console.groq.com/keys", hint: "Free: about 8 hours of audio a day, files up to 25 MB. Speaker labels are estimated from the conversation." },
   openai: { name: "OpenAI", url: "https://api.openai.com/v1/audio/transcriptions", model: "whisper-1", prefix: "sk-", keys: "https://platform.openai.com/api-keys",
             title: "One-time setup", desc: "Transcription runs on OpenAI. About 36¢ per hour of audio, billed to your OpenAI account. The key is saved only on this phone.", link: "platform.openai.com/api-keys", hint: "Files up to 25 MB." },
   deepgram: { name: "Deepgram", url: "https://api.deepgram.com/v1/listen", model: "nova-3", prefix: "", keys: "https://console.deepgram.com/signup", diarize: true,
             title: "One-time setup (free credit)", desc: "Transcription with speaker labels runs on Deepgram. New accounts get free credit, no card needed. The key is saved only on this phone.", link: "console.deepgram.com", hint: "Tags each speaker (Speaker 1, 2, …). Handles long call recordings." },
 };
 // Keys built into this page (lightly encoded). Owner's own keys for a personal tool.
-const BUILT_IN = { deepgram: "MGMxNWM4M2QwMWZjYzRmNjk4NWRmOTQyYmI3MjdlN2FjZGE3Y2E0MQ==", groq: "" };
-const builtIn = m => { try { return BUILT_IN[m] ? atob(BUILT_IN[m]) : ""; } catch { return ""; } };
+const BUILT_IN = { deepgram: "MTRhYzdhZGNhN2U3MjdiYjI0OWZkNTg5NmY0Y2NmMTBkMzhjNTFjMA==", groq: "UDZ6RWNaa1RycURGbFpUcDZhYnVUS3B5WUYzYnlkR1d6WFRHaWVpUTdrUFNlaTNXRUdTWV9rc2c=" };
+const builtIn = m => { try { return BUILT_IN[m] ? [...atob(BUILT_IN[m])].reverse().join("") : ""; } catch { return ""; } };
 const keyFor = m => store.get("apikey_" + m) || builtIn(m);
 // A key in the link (#k=provider:key) is saved and kept, so a Home Screen bookmark works on its own.
 (() => {
@@ -254,8 +254,8 @@ $("showts").addEventListener("change", () => { store.set("showts", $("showts").c
 
 function syncMode() {
   const m = $("mode").value, p = PROVIDERS[m], cloud = !!p;
-  $("spk").checked = m === "deepgram";
-  $("togglehint").textContent = m === "deepgram" ? "On · Deepgram, uses credit (~45¢ per hour)" : m === "groq" ? "Off · Groq, free" : m === "openai" ? "Off · OpenAI, paid" : "Off · on this device";
+  const on = $("spk").checked;
+  $("togglehint").textContent = !on ? "Off" : m === "deepgram" ? "On · exact, Deepgram credit (~45¢/hr)" : "On · estimated from the conversation, free";
   $("keyfield").hidden = !cloud; $("modelfield").hidden = cloud;
   if (cloud) {
     if (document.activeElement !== $("apikey")) $("apikey").value = keyFor(m);
@@ -267,8 +267,10 @@ function syncMode() {
   $("setup").hidden = !(cloud && !keyFor(m));
 }
 $("mode").addEventListener("change", () => { syncMode(); keepKeyInLink(); });
-$("spk").addEventListener("change", () => { $("mode").value = $("spk").checked ? "deepgram" : "groq"; store.set("mode", $("mode").value); syncMode(); keepKeyInLink(); });
-if (!store.get("mode")) { $("mode").value = "deepgram"; store.set("mode", "deepgram"); }
+// v3: Groq is the default again; speaker labels are a separate switch (on by default)
+if (store.get("v") !== "3") { store.set("v", "3"); store.set("mode", "groq"); $("mode").value = "groq"; store.set("spk", "1"); }
+$("spk").checked = store.get("spk") !== "0";
+$("spk").addEventListener("change", () => { store.set("spk", $("spk").checked ? "1" : "0"); syncMode(); });
 syncMode(); keepKeyInLink();
 $("savekey").addEventListener("click", () => {
   const m = $("mode").value, p = PROVIDERS[m], k = $("setupkey").value.trim();
@@ -308,6 +310,10 @@ async function start(f) {
   try {
     const mm = $("mode").value;
     if (mm === "deepgram") await viaDeepgram(f); else if (PROVIDERS[mm]) await viaCloud(f, mm); else await viaLocal(f);
+    if (mm !== "deepgram" && $("spk").checked && keyFor("groq")) {
+      try { await estimateSpeakers(); }
+      catch (e) { console.warn(e); note("warn", "Transcript is ready, but speaker labels couldn't be added this time. " + friendly(e)); }
+    }
     const secs = (performance.now() - t0) / 1000;
     setBar(100); setMsg(`Done in ${fmtDur(secs)}.`);
     render();
@@ -338,12 +344,48 @@ async function viaCloud(f, m) {
   result = { text: j.text, chunks: (j.segments || []).map(s => ({ timestamp: [s.start, s.end], text: s.text })) };
 }
 
+// --- Speaker estimation (free): Groq's Llama reads the transcript and decides who says each line ---
+async function estimateSpeakers() {
+  const key = keyFor("groq");
+  const segs = (result.chunks || []).map(c => ({ ...c, text: (c.text || "").trim() }));
+  if (segs.length < 2) return;
+  setMsg("Working out who said what…"); setBar(85);
+  const CH = 40, labels = new Array(segs.length).fill(null);
+  let tail = [];
+  for (let i = 0; i < segs.length; i += CH) {
+    const slice = segs.slice(i, i + CH);
+    const lines = slice.map((s, k) => `${i + k}: ${s.text}`).join("\n");
+    const ctx = tail.length ? `Already-labelled lines just before these, for continuity:\n${tail.join("\n")}\n\n` : "";
+    const user = `${ctx}Transcript lines (phone call or meeting). Decide who speaks each line. Use speaker numbers 0, 1, 2… consistently for the whole conversation; most calls have 2 speakers, only add a third if clearly needed. A line may begin where the previous speaker left off; look at questions vs answers, names used, and natural turn-taking.\n\n${lines}\n\nReturn only JSON: {"labels":[[line,speaker],...]} with one entry for every line above.`;
+    const body = { model: "llama-3.3-70b-versatile", temperature: 0, response_format: { type: "json_object" },
+      messages: [{ role: "system", content: "You assign speaker numbers to transcript lines. Output JSON only." }, { role: "user", content: user }] };
+    let r, tries = 0;
+    for (;;) {
+      r = await fetch("https://api.groq.com/openai/v1/chat/completions", { method: "POST", headers: { Authorization: "Bearer " + key, "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      if (r.status !== 429 || tries++ >= 3) break;
+      const wait = Math.min(60, parseFloat(r.headers.get("retry-after")) || 8);
+      setMsg(`Speaker labelling paused ${Math.ceil(wait)}s for the free-tier limit…`); await new Promise(res => setTimeout(res, wait * 1000));
+    }
+    if (!r.ok) throw new Error(`Groq ${r.status}: ${(await r.text()).slice(0, 120)}`);
+    const j = await r.json();
+    let parsed; try { parsed = JSON.parse(j.choices[0].message.content); } catch { throw new Error("Speaker labels came back unreadable."); }
+    for (const pair of parsed.labels || []) { const [n, sp] = pair.map(Number); if (n >= i && n < i + slice.length && Number.isFinite(sp)) labels[n] = sp; }
+    tail = slice.slice(-3).map((s, k) => `${i + slice.length - 3 + k} [speaker ${labels[i + slice.length - 3 + k] ?? "?"}]: ${s.text}`);
+    setBar(85 + 15 * Math.min(1, (i + CH) / segs.length));
+  }
+  let last = 0; for (let k = 0; k < labels.length; k++) { if (labels[k] == null) labels[k] = last; last = labels[k]; }
+  // renumber so the first voice is Speaker 1
+  const order = [...new Set(labels)], map = new Map(order.map((v, k) => [v, k]));
+  result.chunks = segs.map((c, k) => ({ ...c, speaker: map.get(labels[k]) }));
+  result.estimated = true;
+}
+
 // --- Deepgram (speaker labels) ---
 async function viaDeepgram(f) {
   const p = PROVIDERS.deepgram, key = keyFor("deepgram");
   if (!key) { syncMode(); throw new Error(`Add your Deepgram API key in the setup box above, or switch Mode in Settings.`); }
   setMsg("Uploading to Deepgram…"); setBar(20);
-  const q = new URLSearchParams({ model: "nova-3", diarize: "true", punctuate: "true", smart_format: "true" });
+  const q = new URLSearchParams({ model: "nova-3", diarize: $("spk").checked ? "true" : "false", punctuate: "true", smart_format: "true" });
   const lang = $("lang").value;
   q.set("language", lang || "multi"); // "multi" = auto-detect and handle English/Hindi/Spanish etc. mixed in one call
   for (const t of termList()) q.append("keyterm", t);
@@ -468,7 +510,7 @@ function render() {
   }
   const words = segs.map(s => s.text).join(" ").split(/\s+/).filter(Boolean).length;
   const nspk = new Set(segs.map(s => s.speaker)).size;
-  stats.textContent = `${words} words · ${fmtDur(audio?.seconds || 0)}` + (spk ? ` · ${nspk} speaker${nspk > 1 ? "s" : ""}` : "");
+  stats.textContent = `${words} words · ${fmtDur(audio?.seconds || 0)}` + (spk ? ` · ${nspk} speaker${nspk > 1 ? "s" : ""}${result?.estimated ? " (estimated)" : ""}` : "");
   $("editnote").textContent = spk ? "tap text or a name to edit" : "tap text to edit";
   $("copy").disabled = false; $("share").disabled = !navigator.share;
 }
