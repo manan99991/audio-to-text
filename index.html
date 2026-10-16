@@ -122,7 +122,7 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 <div class="wrap">
   <header>
     <h1>Audio to Text</h1>
-    <div class="engine"><span id="engine">Checking…</span> · v6</div>
+    <div class="engine"><span id="engine">Checking…</span> · v7</div>
   </header>
 
   <div class="setup" id="setup" hidden>
@@ -349,19 +349,48 @@ async function viaCloud(f, m) {
 
 // --- Speaker estimation (free): Groq's Llama reads the transcript and decides who says each line ---
 const GROQ_PREFS = ["llama-3.3-70b-versatile", "openai/gpt-oss-120b", "meta-llama/llama-4-maverick-17b-128e-instruct", "meta-llama/llama-4-scout-17b-16e-instruct", "openai/gpt-oss-20b", "qwen/qwen3-32b", "llama-3.1-8b-instant"];
-let groqChatModel = null;
-async function pickGroqModel(key) {
-  if (groqChatModel) return groqChatModel;
+let groqModels = null;
+async function listGroqModels(key) {
+  if (groqModels) return groqModels;
   const r = await fetch("https://api.groq.com/openai/v1/models", { headers: { Authorization: "Bearer " + key } });
   if (!r.ok) throw new Error(`Groq ${r.status} listing models`);
   const ids = ((await r.json()).data || []).filter(m => m.active !== false).map(m => m.id);
-  groqChatModel = GROQ_PREFS.find(p => ids.includes(p)) || ids.find(id => !/whisper|tts|guard|orpheus|playai|embed|compound/i.test(id));
-  if (!groqChatModel) throw new Error("No Groq chat model available for speaker labels.");
-  return groqChatModel;
+  const chat = ids.filter(id => !/whisper|tts|guard|orpheus|playai|embed|compound|saba/i.test(id));
+  groqModels = [...GROQ_PREFS.filter(p => chat.includes(p)), ...chat.filter(id => !GROQ_PREFS.includes(id))];
+  if (!groqModels.length) throw new Error("No Groq chat model available for speaker labels.");
+  return groqModels;
+}
+const sleep = ms => new Promise(res => setTimeout(res, ms));
+const limitedUntil = {}; // model -> timestamp until which Groq told us it is rate-limited
+// One chat call that survives the free tier: rotate models on 429, wait exactly what Groq asks when all are busy.
+async function groqChat(key, body) {
+  const models = await listGroqModels(key);
+  body.model = models.find(m => !(limitedUntil[m] > Date.now())) || models[0];
+  let waits = 0;
+  for (let attempt = 0; attempt < 14; attempt++) {
+    const r = await fetch("https://api.groq.com/openai/v1/chat/completions", { method: "POST", headers: { Authorization: "Bearer " + key, "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    if (r.ok) return r.json();
+    const txt = await r.text();
+    if (r.status === 400 && body.response_format) { delete body.response_format; continue; }
+    if (r.status === 404 || r.status === 410) { const i = models.indexOf(body.model); if (i >= 0) models.splice(i, 1); if (!models.length) throw new Error("No Groq chat model available."); body.model = models[0]; continue; }
+    if (r.status === 429) {
+      const m = txt.match(/try again in (?:(\d+)m)?([\d.]+)s/i);
+      const waitMs = m ? ((+m[1] || 0) * 60 + parseFloat(m[2])) * 1000 + 500 : 15000;
+      limitedUntil[body.model] = Date.now() + waitMs;
+      const next = models.find(x => !(limitedUntil[x] > Date.now()));
+      if (next) { body.model = next; continue; }
+      const soonest = Math.min(...models.map(x => limitedUntil[x])) - Date.now();
+      if (waits++ >= 5 || soonest > 120000) throw new Error("Groq's free limit is busy right now. Transcript is ready; try speaker labels again in a minute, or use Deepgram.");
+      for (let left = Math.ceil(soonest / 1000); left > 0; left--) { setMsg(`Free-tier limit reached. Speaker labelling resumes in ${left}s…`); await sleep(1000); }
+      body.model = models.find(x => !(limitedUntil[x] > Date.now())) || models[0];
+      continue;
+    }
+    throw new Error(`Groq ${r.status}: ${txt.slice(0, 120)}`);
+  }
+  throw new Error("Groq kept refusing the request.");
 }
 async function estimateSpeakers() {
   const key = keyFor("groq");
-  const model = await pickGroqModel(key);
   const segs = (result.chunks || []).map(c => ({ ...c, text: (c.text || "").trim() }));
   if (segs.length < 2) return;
   setMsg("Working out who said what…"); setBar(85);
@@ -372,26 +401,16 @@ async function estimateSpeakers() {
     const lines = slice.map((s, k) => `${i + k}: ${s.text}`).join("\n");
     const ctx = tail.length ? `Already-labelled lines just before these, for continuity:\n${tail.join("\n")}\n\n` : "";
     const user = `${ctx}Transcript lines (phone call or meeting). Decide who speaks each line. Use speaker numbers 0, 1, 2… consistently for the whole conversation; most calls have 2 speakers, only add a third if clearly needed. A line may begin where the previous speaker left off; look at questions vs answers, names used, and natural turn-taking.\n\n${lines}\n\nReturn only JSON: {"labels":[[line,speaker],...]} with one entry for every line above.`;
-    const body = { model, temperature: 0, response_format: { type: "json_object" },
+    const body = { temperature: 0, response_format: { type: "json_object" },
       messages: [{ role: "system", content: "You assign speaker numbers to transcript lines. Output JSON only." }, { role: "user", content: user }] };
-    let r, tries = 0;
-    for (;;) {
-      r = await fetch("https://api.groq.com/openai/v1/chat/completions", { method: "POST", headers: { Authorization: "Bearer " + key, "Content-Type": "application/json" }, body: JSON.stringify(body) });
-      if (r.status === 400 && body.response_format) { delete body.response_format; continue; } // model lacks JSON mode: parse from text
-      if (r.status === 404) { groqChatModel = null; const next = GROQ_PREFS.indexOf(body.model); body.model = GROQ_PREFS[next + 1] || "llama-3.1-8b-instant"; if (tries++ < 3) continue; }
-      if (r.status !== 429 || tries++ >= 3) break;
-      const wait = Math.min(60, parseFloat(r.headers.get("retry-after")) || 8);
-      setMsg(`Speaker labelling paused ${Math.ceil(wait)}s for the free-tier limit…`); await new Promise(res => setTimeout(res, wait * 1000));
-    }
-    if (!r.ok) throw new Error(`Groq ${r.status}: ${(await r.text()).slice(0, 120)}`);
-    const j = await r.json();
+    const j = await groqChat(key, body);
     let parsed; try { const txt = j.choices[0].message.content; parsed = JSON.parse(txt.slice(txt.indexOf("{"), txt.lastIndexOf("}") + 1)); } catch { throw new Error("Speaker labels came back unreadable."); }
     for (const pair of parsed.labels || []) { const [n, sp] = pair.map(Number); if (n >= i && n < i + slice.length && Number.isFinite(sp)) labels[n] = sp; }
     tail = slice.slice(-3).map((s, k) => `${i + slice.length - 3 + k} [speaker ${labels[i + slice.length - 3 + k] ?? "?"}]: ${s.text}`);
+    setMsg(`Working out who said what… ${Math.min(i + CH, segs.length)} of ${segs.length} lines`);
     setBar(85 + 15 * Math.min(1, (i + CH) / segs.length));
   }
   let last = 0; for (let k = 0; k < labels.length; k++) { if (labels[k] == null) labels[k] = last; last = labels[k]; }
-  // renumber so the first voice is Speaker 1
   const order = [...new Set(labels)], map = new Map(order.map((v, k) => [v, k]));
   result.chunks = segs.map((c, k) => ({ ...c, speaker: map.get(labels[k]) }));
   result.estimated = true;
