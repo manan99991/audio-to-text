@@ -36,7 +36,10 @@ body {
 .wrap { max-width: 720px; margin: 0 auto; display: grid; gap: 14px; }
 header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 h1 { font-size: 20px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
-.engine { font: 11px/1.4 var(--font-mono); color: var(--muted); font-variant-numeric: tabular-nums; text-transform: uppercase; letter-spacing: 0.08em; white-space: nowrap; }
+.engine { font: 11px/1.4 var(--font-mono); color: var(--muted); font-variant-numeric: tabular-nums; text-align: right;
+  min-height: 2.8em; }
+#credit { color: var(--accent); }
+#engine { text-transform: uppercase; letter-spacing: 0.08em; }
 
 .setup { background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 14px; padding: 14px 16px; display: grid; gap: 8px; }
 .setup p, .setup ol { margin: 0; font-size: 14px; }
@@ -123,7 +126,7 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 <div class="wrap">
   <header>
     <h1>Audio to Text</h1>
-    <div class="engine"><span id="engine">Checking…</span> · v9</div>
+    <div class="engine"><span id="engine">Checking…</span> · v10<br><span id="credit"></span></div>
   </header>
 
   <div class="setup" id="setup" hidden>
@@ -288,6 +291,27 @@ $("apikey").addEventListener("input", () => { store.set("apikey_" + $("mode").va
   try { if (navigator.gpu && await navigator.gpu.requestAdapter()) device = "webgpu"; } catch {}
   $("engine").textContent = device === "webgpu" ? "GPU" : "CPU";
 })();
+
+// Deepgram credit left (needs an Owner/Admin key; Member keys can't see billing)
+async function showCredit() {
+  const key = keyFor("deepgram"); if (!key) return;
+  const el = $("credit");
+  try {
+    const cached = JSON.parse(store.get("dgcredit") || "null");
+    if (cached && Date.now() - cached.at < 10 * 60000) { el.textContent = cached.text; return; }
+    const h = { Authorization: "Token " + key };
+    const pr = await fetch("https://api.deepgram.com/v1/projects", { headers: h });
+    if (!pr.ok) throw new Error(String(pr.status));
+    const pid = ((await pr.json()).projects || [])[0]?.project_id; if (!pid) throw new Error("no project");
+    const br = await fetch(`https://api.deepgram.com/v1/projects/${pid}/balances`, { headers: h });
+    if (br.status === 403) { el.textContent = "Deepgram credit: key can't see billing"; return; }
+    if (!br.ok) throw new Error(String(br.status));
+    const bal = ((await br.json()).balances || []).reduce((a, b) => a + (+b.amount || 0), 0);
+    const text = `Deepgram credit $${bal.toFixed(2)}`;
+    el.textContent = text; store.set("dgcredit", JSON.stringify({ text, at: Date.now() }));
+  } catch (e) { el.textContent = ""; console.warn("credit", e); }
+}
+showCredit();
 
 fileIn.addEventListener("change", () => { if (fileIn.files[0]) start(fileIn.files[0]); });
 const pick = $("pick");
@@ -503,6 +527,7 @@ async function viaDeepgram(f) {
     else chunks.push({ speaker: spk, text: word, timestamp: [w.start, w.end] });
   }
   audio = { seconds: j.metadata?.duration || (words.length ? words[words.length - 1].end : 0) };
+  try { localStorage.removeItem("dgcredit"); } catch {} setTimeout(showCredit, 1500);
   result = { text: alt.transcript || "", chunks: chunks.length ? chunks : [{ speaker: 0, text: alt.transcript || "", timestamp: [0, audio.seconds] }] };
 }
 
