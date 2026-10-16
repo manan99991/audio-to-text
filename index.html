@@ -232,7 +232,8 @@ function syncMode() {
   const m = $("mode").value, p = PROVIDERS[m], cloud = !!p;
   $("keyfield").hidden = !cloud; $("modelfield").hidden = cloud;
   if (cloud) {
-    $("apikey").value = keyFor(m); $("apikey").placeholder = p.prefix + "…"; $("keylabel").textContent = p.name + " API key";
+    if (document.activeElement !== $("apikey")) $("apikey").value = keyFor(m);
+    $("apikey").placeholder = p.prefix + "…"; $("keylabel").textContent = p.name + " API key";
     $("setuptitle").textContent = p.title; $("setupdesc").textContent = p.desc;
     $("setuplink").href = p.keys; $("setuplink").textContent = p.link; $("setupkey").placeholder = p.prefix + "…";
     $("setup").querySelector(".hint").textContent = p.hint;
@@ -247,7 +248,7 @@ $("savekey").addEventListener("click", () => {
   store.set("apikey_" + m, k); $("setupkey").value = ""; clearNote(); syncMode(); keepKeyInLink();
   setMsg("Key saved. Now tap Share → Add to Home Screen, then pick a file.");
 });
-$("apikey").addEventListener("input", syncMode);
+$("apikey").addEventListener("input", () => { store.set("apikey_" + $("mode").value, $("apikey").value.trim()); keepKeyInLink(); syncMode(); });
 
 (async () => {
   try { if (navigator.gpu && await navigator.gpu.requestAdapter()) device = "webgpu"; } catch {}
