@@ -233,7 +233,7 @@ const PROVIDERS = {
             title: "One-time setup (free credit)", desc: "Transcription with speaker labels runs on Deepgram. New accounts get free credit, no card needed. The key is saved only on this phone.", link: "console.deepgram.com", hint: "Tags each speaker (Speaker 1, 2, …). Handles long call recordings." },
 };
 // Keys built into this page (lightly encoded). Owner's own keys for a personal tool.
-const BUILT_IN = { deepgram: "", groq: "" };
+const BUILT_IN = { deepgram: "MGMxNWM4M2QwMWZjYzRmNjk4NWRmOTQyYmI3MjdlN2FjZGE3Y2E0MQ==", groq: "" };
 const builtIn = m => { try { return BUILT_IN[m] ? atob(BUILT_IN[m]) : ""; } catch { return ""; } };
 const keyFor = m => store.get("apikey_" + m) || builtIn(m);
 // A key in the link (#k=provider:key) is saved and kept, so a Home Screen bookmark works on its own.
