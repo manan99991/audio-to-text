@@ -123,7 +123,7 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 <div class="wrap">
   <header>
     <h1>Audio to Text</h1>
-    <div class="engine"><span id="engine">Checking…</span> · v8</div>
+    <div class="engine"><span id="engine">Checking…</span> · v9</div>
   </header>
 
   <div class="setup" id="setup" hidden>
@@ -397,10 +397,15 @@ async function groqChat(key, body) {
   const models = await listGroqModels(key);
   body.model = models.find(m => !(limitedUntil[m] > Date.now())) || models[0];
   let waits = 0;
+  let extras = true;
   for (let attempt = 0; attempt < 14; attempt++) {
-    const r = await fetch("https://api.groq.com/openai/v1/chat/completions", { method: "POST", headers: { Authorization: "Bearer " + key, "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const payload = { ...body };
+    if (extras && /gpt-oss/.test(body.model)) payload.reasoning_effort = "low";
+    if (extras && /qwen|deepseek|r1/i.test(body.model)) payload.reasoning_format = "hidden";
+    const r = await fetch("https://api.groq.com/openai/v1/chat/completions", { method: "POST", headers: { Authorization: "Bearer " + key, "Content-Type": "application/json" }, body: JSON.stringify(payload) });
     if (r.ok) return r.json();
     const txt = await r.text();
+    if (r.status === 400 && extras) { extras = false; continue; }
     if (r.status === 400 && body.response_format) { delete body.response_format; continue; }
     if (r.status === 404 || r.status === 410) { const i = models.indexOf(body.model); if (i >= 0) models.splice(i, 1); if (!models.length) throw new Error("No Groq chat model available."); body.model = models[0]; continue; }
     if (r.status === 429) {
@@ -419,6 +424,19 @@ async function groqChat(key, body) {
   }
   throw new Error("Groq kept refusing the request.");
 }
+function extractLabels(txt) {
+  if (!txt) return null;
+  try { const o = JSON.parse(txt); if (o && o.labels) return o; } catch {}
+  const re = /\{\s*"labels"\s*:\s*\[/g; let m;
+  while ((m = re.exec(txt))) {
+    let depth = 0;
+    for (let i = m.index; i < txt.length; i++) {
+      const c = txt[i]; if (c === "{" || c === "[") depth++; else if (c === "}" || c === "]") { depth--; if (depth === 0) { try { return JSON.parse(txt.slice(m.index, i + 1)); } catch {} break; } }
+    }
+  }
+  const pairs = [...txt.matchAll(/\[\s*(\d+)\s*,\s*(\d+)\s*\]/g)].map(x => [+x[1], +x[2]]);
+  return pairs.length ? { labels: pairs } : null;
+}
 async function estimateSpeakers() {
   const key = keyFor("groq");
   const segs = (result.chunks || []).map(c => ({ ...c, text: (c.text || "").trim() }));
@@ -433,9 +451,19 @@ async function estimateSpeakers() {
     const user = `${ctx}Transcript lines (phone call or meeting). Decide who speaks each line. Use speaker numbers 0, 1, 2… consistently for the whole conversation; most calls have 2 speakers, only add a third if clearly needed. A line may begin where the previous speaker left off; look at questions vs answers, names used, and natural turn-taking.\n\n${lines}\n\nReturn only JSON: {"labels":[[line,speaker],...]} with one entry for every line above.`;
     const body = { temperature: 0, response_format: { type: "json_object" },
       messages: [{ role: "system", content: "You assign speaker numbers to transcript lines. Output JSON only." }, { role: "user", content: user }] };
-    const j = await groqChat(key, body);
-    let parsed; try { const txt = j.choices[0].message.content; parsed = JSON.parse(txt.slice(txt.indexOf("{"), txt.lastIndexOf("}") + 1)); } catch { throw new Error("Speaker labels came back unreadable."); }
-    for (const pair of parsed.labels || []) { const [n, sp] = pair.map(Number); if (n >= i && n < i + slice.length && Number.isFinite(sp)) labels[n] = sp; }
+    let parsed = null, raw = "";
+    for (let tryN = 0; tryN < 3 && !parsed; tryN++) {
+      const j = await groqChat(key, body);
+      const msg = j.choices?.[0]?.message || {};
+      raw = msg.content || msg.reasoning || "";
+      parsed = extractLabels(raw);
+      if (!parsed) { limitedUntil[body.model] = Date.now() + 120000; delete body.response_format; } // that model gave junk: hand the chunk to another one
+    }
+    if (!parsed) throw new Error(`Speaker labels came back unreadable (${raw.slice(0, 60).replace(/\s+/g, " ")}…).`);
+    for (const pair of parsed.labels || []) {
+      const [n, sp] = Array.isArray(pair) ? pair.map(Number) : [Number(pair.line ?? pair.l ?? pair[0]), Number(pair.speaker ?? pair.s ?? pair[1])];
+      if (n >= i && n < i + slice.length && Number.isFinite(sp)) labels[n] = sp;
+    }
     tail = slice.slice(-3).map((s, k) => `${i + slice.length - 3 + k} [speaker ${labels[i + slice.length - 3 + k] ?? "?"}]: ${s.text}`);
     setMsg(`Working out who said what… ${Math.min(i + CH, segs.length)} of ${segs.length} lines`);
     setBar(85 + 15 * Math.min(1, (i + CH) / segs.length));
