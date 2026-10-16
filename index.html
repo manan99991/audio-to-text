@@ -86,6 +86,9 @@ select:focus-visible, input:focus-visible, button:focus-visible { outline: 2px s
 .transcript p { margin: 0; white-space: pre-wrap; }
 .seg { display: grid; grid-template-columns: auto 1fr; gap: 10px; margin-bottom: 8px; }
 .seg time { font: 12px/1.6 var(--font-mono); color: var(--accent); font-variant-numeric: tabular-nums; }
+.spk { margin: 12px 0 4px; }
+.spkname { font: 600 13px/1.4 var(--font-mono); color: var(--accent); background: var(--accent-soft); border: 1px solid var(--accent); padding: 2px 10px; border-radius: 10px; display: inline-block; outline: none; }
+.spk:first-child { margin-top: 0; }
 .seg div[contenteditable], .transcript p[contenteditable] { outline: none; }
 .empty { color: var(--muted); }
 
@@ -143,6 +146,7 @@ button:disabled { opacity: .45; cursor: not-allowed; }
       <label class="field">Mode
         <select id="mode">
           <option value="groq" selected>Groq cloud · free, fast</option>
+          <option value="deepgram">Deepgram cloud · speaker labels</option>
           <option value="openai">OpenAI cloud · paid, fast</option>
           <option value="local">On this device · free, offline, short clips only</option>
         </select>
@@ -205,6 +209,8 @@ const PROVIDERS = {
             title: "One-time setup (free)", desc: "Transcription runs on Groq's free Whisper service. Takes about 15 seconds for an hour of audio. No card needed. The key is saved only on this phone.", link: "console.groq.com/keys", hint: "Free tier covers about 8 hours of audio a day, files up to 25 MB." },
   openai: { name: "OpenAI", url: "https://api.openai.com/v1/audio/transcriptions", model: "whisper-1", prefix: "sk-", keys: "https://platform.openai.com/api-keys",
             title: "One-time setup", desc: "Transcription runs on OpenAI. About 36¢ per hour of audio, billed to your OpenAI account. The key is saved only on this phone.", link: "platform.openai.com/api-keys", hint: "Files up to 25 MB." },
+  deepgram: { name: "Deepgram", url: "https://api.deepgram.com/v1/listen?model=nova-2&diarize=true&punctuate=true&smart_format=true", model: "nova-2", prefix: "", keys: "https://console.deepgram.com/signup", diarize: true,
+            title: "One-time setup (free credit)", desc: "Transcription with speaker labels runs on Deepgram. New accounts get free credit, no card needed. The key is saved only on this phone.", link: "console.deepgram.com", hint: "Tags each speaker (Speaker 1, 2, …). Handles long call recordings." },
 };
 const keyFor = m => store.get("apikey_" + m) || "";
 // A key in the link (#k=gsk_…) is saved and kept, so a Home Screen bookmark works on its own.
@@ -236,7 +242,8 @@ function syncMode() {
 $("mode").addEventListener("change", () => { syncMode(); keepKeyInLink(); }); syncMode(); keepKeyInLink();
 $("savekey").addEventListener("click", () => {
   const m = $("mode").value, p = PROVIDERS[m], k = $("setupkey").value.trim();
-  if (!k.startsWith(p.prefix)) { note("err", `That doesn't look like a ${p.name} key. It starts with ${p.prefix}`); return; }
+  if (!k) { note("err", `Paste your ${p.name} key first.`); return; }
+  if (p.prefix && !k.startsWith(p.prefix)) { note("err", `That doesn't look like a ${p.name} key. It starts with ${p.prefix}`); return; }
   store.set("apikey_" + m, k); $("setupkey").value = ""; clearNote(); syncMode(); keepKeyInLink();
   setMsg("Key saved. Now tap Share → Add to Home Screen, then pick a file.");
 });
@@ -267,7 +274,8 @@ async function start(f) {
   ["copy", "share"].forEach(id => $(id).disabled = true);
   const t0 = performance.now();
   try {
-    if (PROVIDERS[$("mode").value]) await viaCloud(f, $("mode").value); else await viaLocal(f);
+    const mm = $("mode").value;
+    if (mm === "deepgram") await viaDeepgram(f); else if (PROVIDERS[mm]) await viaCloud(f, mm); else await viaLocal(f);
     const secs = (performance.now() - t0) / 1000;
     setBar(100); setMsg(`Done in ${fmtDur(secs)}.`);
     render();
@@ -294,6 +302,33 @@ async function viaCloud(f, m) {
   const j = await r.json();
   audio = { seconds: j.duration || 0 };
   result = { text: j.text, chunks: (j.segments || []).map(s => ({ timestamp: [s.start, s.end], text: s.text })) };
+}
+
+// --- Deepgram (speaker labels) ---
+async function viaDeepgram(f) {
+  const p = PROVIDERS.deepgram, key = keyFor("deepgram");
+  if (!key) { syncMode(); throw new Error(`Add your Deepgram API key in the setup box above, or switch Mode in Settings.`); }
+  setMsg("Uploading to Deepgram…"); setBar(20);
+  let url = p.url;
+  if ($("lang").value) url += "&language=" + encodeURIComponent($("lang").value);
+  const r = await fetch(url, { method: "POST", headers: { Authorization: "Token " + key, "Content-Type": f.type || "application/octet-stream" }, body: f });
+  setBar(80);
+  if (r.status === 401) throw new Error("Deepgram rejected the key. Open Settings and paste a new one.");
+  if (r.status === 429) throw new Error("Deepgram rate limit hit. Wait a bit and try again.");
+  if (!r.ok) { const t = await r.text(); throw new Error(`Deepgram ${r.status}: ${t.slice(0, 160)}`); }
+  const j = await r.json();
+  const alt = j.results?.channels?.[0]?.alternatives?.[0] || {};
+  const words = alt.words || [];
+  // group consecutive words by speaker into turns
+  const chunks = [];
+  for (const w of words) {
+    const spk = (w.speaker ?? 0), word = w.punctuated_word || w.word || "";
+    const last = chunks[chunks.length - 1];
+    if (last && last.speaker === spk) { last.text += " " + word; last.timestamp[1] = w.end; }
+    else chunks.push({ speaker: spk, text: word, timestamp: [w.start, w.end] });
+  }
+  audio = { seconds: j.metadata?.duration || (words.length ? words[words.length - 1].end : 0) };
+  result = { text: alt.transcript || "", chunks: chunks.length ? chunks : [{ speaker: 0, text: alt.transcript || "", timestamp: [0, audio.seconds] }] };
 }
 
 // --- On-device mode ---
@@ -352,15 +387,36 @@ function friendly(e) {
   if (/Load failed|fetch|network/i.test(s)) return "A download failed. Check your connection and try again.";
   return s.slice(0, 220);
 }
+const speakerNames = {}; // speaker index -> custom name (editable)
+const speakerLabel = i => speakerNames[i] || `Speaker ${i + 1}`;
 function segments() {
   if (!result) return [];
   const ch = result.chunks?.length ? result.chunks : [{ timestamp: [0, audio?.seconds || 0], text: result.text }];
-  return ch.map(c => ({ start: c.timestamp[0] ?? 0, end: c.timestamp[1] ?? 0, text: (c.text || "").trim() })).filter(c => c.text);
+  return ch.map(c => ({ start: c.timestamp[0] ?? 0, end: c.timestamp[1] ?? 0, text: (c.text || "").trim(), speaker: c.speaker })).filter(c => c.text);
 }
+const hasSpeakers = () => segments().some(s => s.speaker != null);
 function render() {
   const segs = segments(); tEl.replaceChildren();
   if (!segs.length) { tEl.innerHTML = '<div class="empty">No speech was detected.</div>'; return; }
-  if ($("showts").checked) {
+  const spk = hasSpeakers(), showTs = $("showts").checked;
+  if (spk) {
+    let prev = null;
+    for (const s of segs) {
+      if (s.speaker !== prev) {
+        const head = document.createElement("div"); head.className = "spk";
+        const name = document.createElement("span"); name.className = "spkname"; name.contentEditable = "true";
+        name.textContent = speakerLabel(s.speaker);
+        const idx = s.speaker;
+        name.addEventListener("blur", () => { const v = name.textContent.trim(); if (v && v !== `Speaker ${idx + 1}`) speakerNames[idx] = v; else delete speakerNames[idx]; render(); });
+        head.append(name); tEl.append(head); prev = s.speaker;
+      }
+      const row = document.createElement("div"); row.className = "seg";
+      const t = document.createElement("time"); t.textContent = showTs ? ts(s.start) : "";
+      const d = document.createElement("div"); d.contentEditable = "true"; d.textContent = s.text;
+      d.addEventListener("input", () => { s.text = d.textContent; });
+      row.append(t, d); tEl.append(row);
+    }
+  } else if (showTs) {
     for (const s of segs) {
       const row = document.createElement("div"); row.className = "seg";
       const t = document.createElement("time"); t.textContent = ts(s.start);
@@ -372,13 +428,23 @@ function render() {
     const p = document.createElement("p"); p.contentEditable = "true"; p.textContent = segs.map(s => s.text).join(" "); tEl.append(p);
   }
   const words = segs.map(s => s.text).join(" ").split(/\s+/).filter(Boolean).length;
-  stats.textContent = `${words} words · ${fmtDur(audio?.seconds || 0)}`;
-  $("editnote").textContent = "tap text to edit";
+  const nspk = new Set(segs.map(s => s.speaker)).size;
+  stats.textContent = `${words} words · ${fmtDur(audio?.seconds || 0)}` + (spk ? ` · ${nspk} speaker${nspk > 1 ? "s" : ""}` : "");
+  $("editnote").textContent = spk ? "tap text or a name to edit" : "tap text to edit";
   $("copy").disabled = false; $("share").disabled = !navigator.share;
 }
 function plainText() {
-  if (!$("showts").checked) return (tEl.textContent || "").trim();
-  return segments().map(s => `[${ts(s.start)}] ${s.text}`).join("\n");
+  const segs = segments(), showTs = $("showts").checked;
+  if (hasSpeakers()) {
+    const out = []; let prev = null;
+    for (const s of segs) {
+      if (s.speaker !== prev) { out.push(`\n${speakerLabel(s.speaker)}:`); prev = s.speaker; }
+      out.push((showTs ? `[${ts(s.start)}] ` : "") + s.text);
+    }
+    return out.join("\n").trim();
+  }
+  if (!showTs) return (tEl.textContent || "").trim();
+  return segs.map(s => `[${ts(s.start)}] ${s.text}`).join("\n");
 }
 $("copy").addEventListener("click", async () => {
   try { await navigator.clipboard.writeText(plainText()); $("copy").textContent = "Copied ✓"; setTimeout(() => $("copy").textContent = "Copy text", 1500); }
