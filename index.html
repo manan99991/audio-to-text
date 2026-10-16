@@ -126,7 +126,7 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 <div class="wrap">
   <header>
     <h1>Audio to Text</h1>
-    <div class="engine"><span id="engine">Checking…</span> · v10<br><span id="credit"></span></div>
+    <div class="engine"><span id="engine">Checking…</span> · v11<br><span id="credit"></span></div>
   </header>
 
   <div class="setup" id="setup" hidden>
@@ -309,7 +309,13 @@ async function showCredit() {
     const bal = ((await br.json()).balances || []).reduce((a, b) => a + (+b.amount || 0), 0);
     const text = `Deepgram credit $${bal.toFixed(2)}`;
     el.textContent = text; store.set("dgcredit", JSON.stringify({ text, at: Date.now() }));
-  } catch (e) { el.textContent = ""; console.warn("credit", e); }
+  } catch (e) {
+    console.warn("credit", e);
+    const why = /^\d{3}$/.test(e.message) ? "HTTP " + e.message : /fetch|network|load/i.test(e.message) ? "blocked by browser" : e.message.slice(0, 30);
+    el.innerHTML = "";
+    const a = document.createElement("a"); a.href = "https://console.deepgram.com/"; a.target = "_blank"; a.rel = "noopener"; a.textContent = `Deepgram credit: see console ↗ (${why})`; a.style.color = "var(--accent)";
+    el.append(a);
+  }
 }
 showCredit();
 
