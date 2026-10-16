@@ -45,6 +45,17 @@ h1 { font-size: 20px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
 .setup .row input { flex: 1; min-width: 0; }
 .setup .row button { flex: 0 0 auto; min-height: 44px; }
 .setup .hint { color: var(--muted); font-size: 12px; }
+.toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px 16px; cursor: pointer; }
+.toggle span { display: grid; gap: 2px; }
+.toggle b { font-weight: 600; }
+.toggle small { color: var(--muted); font-size: 12px; }
+.toggle input { appearance: none; width: 50px; height: 30px; border-radius: 15px; background: var(--line); position: relative; cursor: pointer; flex: 0 0 auto; margin: 0; transition: background .15s; }
+.toggle input::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: var(--surface); box-shadow: 0 1px 3px rgba(0,0,0,.3); transition: transform .15s; }
+.toggle input:checked { background: var(--accent); }
+.toggle input:checked::after { transform: translateX(20px); }
+.toggle input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+textarea { font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; width: 100%; min-height: 70px; resize: vertical; }
+textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .pick {
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
   min-height: 112px; border: 1.5px dashed var(--line); border-radius: 14px; background: var(--surface);
@@ -127,6 +138,11 @@ button:disabled { opacity: .45; cursor: not-allowed; }
     <p class="hint">Free tier covers about 8 hours of audio a day, files up to 25 MB.</p>
   </div>
 
+  <label class="toggle">
+    <span><b>Speaker labels</b><small id="togglehint">On · Deepgram (uses credit)</small></span>
+    <input type="checkbox" id="spk" role="switch">
+  </label>
+
   <label class="pick" id="pick">
     <input type="file" id="file" accept="audio/*,video/*,.m4a,.mp3,.wav,.ogg,.webm,.mp4,.aac,.flac">
     <strong>Tap to choose an audio file</strong>
@@ -178,6 +194,10 @@ button:disabled { opacity: .45; cursor: not-allowed; }
           <option value="ar">Arabic</option>
         </select>
       </label>
+      <label class="field">Names &amp; terms it should get right
+        <textarea id="terms" placeholder="Manan, Medtronic, DHP, Naperville, Chaitali"></textarea>
+        <span class="hint">Comma-separated. People, companies, product names, jargon. Boosts accuracy on both services.</span>
+      </label>
       <label class="check"><input type="checkbox" id="showts" checked> Show timestamps</label>
     </div>
   </details>
@@ -203,33 +223,39 @@ let file = null, audio = null, result = null, transcriber = null, loadedModel = 
 
 // Remember settings on this device
 const store = { get: k => { try { return localStorage.getItem(k) } catch { return null } }, set: (k, v) => { try { localStorage.setItem(k, v) } catch {} } };
-for (const id of ["mode", "model", "lang"]) { const v = store.get(id); if (v) $(id).value = v; $(id).addEventListener("change", () => store.set(id, $(id).value)); }
+for (const id of ["mode", "model", "lang", "terms"]) { const v = store.get(id); if (v) $(id).value = v; $(id).addEventListener("change", () => store.set(id, $(id).value)); }
 const PROVIDERS = {
-  groq:   { name: "Groq", url: "https://api.groq.com/openai/v1/audio/transcriptions", model: "whisper-large-v3-turbo", prefix: "gsk_", keys: "https://console.groq.com/keys",
+  groq:   { name: "Groq", url: "https://api.groq.com/openai/v1/audio/transcriptions", model: "whisper-large-v3", prefix: "gsk_", keys: "https://console.groq.com/keys",
             title: "One-time setup (free)", desc: "Transcription runs on Groq's free Whisper service. Takes about 15 seconds for an hour of audio. No card needed. The key is saved only on this phone.", link: "console.groq.com/keys", hint: "Free tier covers about 8 hours of audio a day, files up to 25 MB." },
   openai: { name: "OpenAI", url: "https://api.openai.com/v1/audio/transcriptions", model: "whisper-1", prefix: "sk-", keys: "https://platform.openai.com/api-keys",
             title: "One-time setup", desc: "Transcription runs on OpenAI. About 36¢ per hour of audio, billed to your OpenAI account. The key is saved only on this phone.", link: "platform.openai.com/api-keys", hint: "Files up to 25 MB." },
-  deepgram: { name: "Deepgram", url: "https://api.deepgram.com/v1/listen?model=nova-2&diarize=true&punctuate=true&smart_format=true", model: "nova-2", prefix: "", keys: "https://console.deepgram.com/signup", diarize: true,
+  deepgram: { name: "Deepgram", url: "https://api.deepgram.com/v1/listen", model: "nova-3", prefix: "", keys: "https://console.deepgram.com/signup", diarize: true,
             title: "One-time setup (free credit)", desc: "Transcription with speaker labels runs on Deepgram. New accounts get free credit, no card needed. The key is saved only on this phone.", link: "console.deepgram.com", hint: "Tags each speaker (Speaker 1, 2, …). Handles long call recordings." },
 };
-const keyFor = m => store.get("apikey_" + m) || "";
-// A key in the link (#k=gsk_…) is saved and kept, so a Home Screen bookmark works on its own.
+// Keys built into this page (lightly encoded). Owner's own keys for a personal tool.
+const BUILT_IN = { deepgram: "", groq: "" };
+const builtIn = m => { try { return BUILT_IN[m] ? atob(BUILT_IN[m]) : ""; } catch { return ""; } };
+const keyFor = m => store.get("apikey_" + m) || builtIn(m);
+// A key in the link (#k=provider:key) is saved and kept, so a Home Screen bookmark works on its own.
 (() => {
   const h = decodeURIComponent(location.hash.slice(1));
-  const mm = h.match(/^k=(gsk_\S+|sk-\S+)$/);
-  if (mm) { const k = mm[1], m = k.startsWith("gsk_") ? "groq" : "openai"; store.set("apikey_" + m, k); store.set("mode", m); }
+  let mm = h.match(/^k=(groq|openai|deepgram):(\S+)$/);
+  if (mm) { store.set("apikey_" + mm[1], mm[2]); return; }
+  mm = h.match(/^k=(gsk_\S+|sk-\S+)$/);
+  if (mm) { const k = mm[1], m = k.startsWith("gsk_") ? "groq" : "openai"; store.set("apikey_" + m, k); }
 })();
 function keepKeyInLink() {
-  const m = $("mode").value, k = PROVIDERS[m] ? keyFor(m) : "";
-  try { history.replaceState(null, "", k ? "#k=" + k : location.pathname); } catch {}
+  const parts = Object.keys(PROVIDERS).filter(m => store.get("apikey_" + m)).map(m => m + ":" + store.get("apikey_" + m));
+  try { history.replaceState(null, "", parts.length ? "#k=" + parts[0] : location.pathname); } catch {}
 }
 $("apikey").addEventListener("change", () => { store.set("apikey_" + $("mode").value, $("apikey").value.trim()); keepKeyInLink(); });
 const ts0 = store.get("showts"); if (ts0 !== null) $("showts").checked = ts0 === "1";
 $("showts").addEventListener("change", () => { store.set("showts", $("showts").checked ? "1" : "0"); if (result) render(); });
 
 function syncMode() {
-  { const sm = store.get("mode"); if (sm && $("mode").value !== sm && PROVIDERS[sm]) $("mode").value = sm; }
   const m = $("mode").value, p = PROVIDERS[m], cloud = !!p;
+  $("spk").checked = m === "deepgram";
+  $("togglehint").textContent = m === "deepgram" ? "On · Deepgram, uses credit (~45¢ per hour)" : m === "groq" ? "Off · Groq, free" : m === "openai" ? "Off · OpenAI, paid" : "Off · on this device";
   $("keyfield").hidden = !cloud; $("modelfield").hidden = cloud;
   if (cloud) {
     if (document.activeElement !== $("apikey")) $("apikey").value = keyFor(m);
@@ -240,7 +266,10 @@ function syncMode() {
   }
   $("setup").hidden = !(cloud && !keyFor(m));
 }
-$("mode").addEventListener("change", () => { syncMode(); keepKeyInLink(); }); syncMode(); keepKeyInLink();
+$("mode").addEventListener("change", () => { syncMode(); keepKeyInLink(); });
+$("spk").addEventListener("change", () => { $("mode").value = $("spk").checked ? "deepgram" : "groq"; store.set("mode", $("mode").value); syncMode(); keepKeyInLink(); });
+if (!store.get("mode")) { $("mode").value = "deepgram"; store.set("mode", "deepgram"); }
+syncMode(); keepKeyInLink();
 $("savekey").addEventListener("click", () => {
   const m = $("mode").value, p = PROVIDERS[m], k = $("setupkey").value.trim();
   if (!k) { note("err", `Paste your ${p.name} key first.`); return; }
@@ -268,6 +297,8 @@ function clearNote() { notes.replaceChildren(); }
 const fmtDur = s => { const m = Math.floor(s / 60), r = Math.round(s % 60); return m ? `${m}m ${r}s` : `${r}s`; };
 const ts = s => { const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), r = Math.floor(s % 60); return (h ? h + ":" : "") + String(m).padStart(2, "0") + ":" + String(r).padStart(2, "0"); };
 
+const termList = () => ($("terms").value || "").split(/[,\n]/).map(t => t.trim()).filter(Boolean).slice(0, 60);
+
 async function start(f) {
   if (busy) return;
   busy = true; file = f; audio = null; result = null; clearNote(); setBar(0);
@@ -294,7 +325,9 @@ async function viaCloud(f, m) {
   const fd = new FormData();
   fd.append("file", f, f.name); fd.append("model", p.model); fd.append("response_format", "verbose_json");
   fd.append("timestamp_granularities[]", "segment");
+  fd.append("temperature", "0");
   if ($("lang").value) fd.append("language", $("lang").value);
+  const terms = termList(); if (terms.length) fd.append("prompt", terms.join(", ") + ".");
   const r = await fetch(p.url, { method: "POST", headers: { Authorization: "Bearer " + key }, body: fd });
   setBar(80);
   if (r.status === 401) throw new Error(`${p.name} rejected the key. Open Settings and paste a new one.`);
@@ -310,11 +343,16 @@ async function viaDeepgram(f) {
   const p = PROVIDERS.deepgram, key = keyFor("deepgram");
   if (!key) { syncMode(); throw new Error(`Add your Deepgram API key in the setup box above, or switch Mode in Settings.`); }
   setMsg("Uploading to Deepgram…"); setBar(20);
-  let url = p.url;
-  if ($("lang").value) url += "&language=" + encodeURIComponent($("lang").value);
-  const r = await fetch(url, { method: "POST", headers: { Authorization: "Token " + key, "Content-Type": f.type || "application/octet-stream" }, body: f });
+  const q = new URLSearchParams({ model: "nova-3", diarize: "true", punctuate: "true", smart_format: "true" });
+  const lang = $("lang").value;
+  q.set("language", lang || "multi"); // "multi" = auto-detect and handle English/Hindi/Spanish etc. mixed in one call
+  for (const t of termList()) q.append("keyterm", t);
+  const headers = { Authorization: "Token " + key, "Content-Type": f.type || "application/octet-stream" };
+  let r = await fetch(p.url + "?" + q.toString(), { method: "POST", headers, body: f });
+  if (r.status === 400 && q.has("keyterm")) { q.delete("keyterm"); r = await fetch(p.url + "?" + q.toString(), { method: "POST", headers, body: f }); }
   setBar(80);
   if (r.status === 401) throw new Error("Deepgram rejected the key. Open Settings and paste a new one.");
+  if (r.status === 402) throw new Error("Deepgram credit is used up. Turn speaker labels off to use Groq for free.");
   if (r.status === 429) throw new Error("Deepgram rate limit hit. Wait a bit and try again.");
   if (!r.ok) { const t = await r.text(); throw new Error(`Deepgram ${r.status}: ${t.slice(0, 160)}`); }
   const j = await r.json();
