@@ -75,6 +75,7 @@ textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; 
 .note { border-radius: 10px; padding: 10px 14px; font-size: 14px; }
 .note.warn { background: var(--warn-soft); color: var(--warn); }
 .note.err { background: var(--err-soft); color: var(--err); }
+.note .retry { margin-top: 8px; min-height: 40px; font-size: 14px; flex: 0; width: auto; padding: 8px 14px; }
 
 details { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
 summary { padding: 12px 14px; cursor: pointer; font-weight: 500; list-style: none; display: flex; justify-content: space-between; }
@@ -122,7 +123,7 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 <div class="wrap">
   <header>
     <h1>Audio to Text</h1>
-    <div class="engine"><span id="engine">Checking…</span> · v7</div>
+    <div class="engine"><span id="engine">Checking…</span> · v8</div>
   </header>
 
   <div class="setup" id="setup" hidden>
@@ -301,20 +302,49 @@ function clearNote() { notes.replaceChildren(); }
 const fmtDur = s => { const m = Math.floor(s / 60), r = Math.round(s % 60); return m ? `${m}m ${r}s` : `${r}s`; };
 const ts = s => { const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), r = Math.floor(s % 60); return (h ? h + ":" : "") + String(m).padStart(2, "0") + ":" + String(r).padStart(2, "0"); };
 
+// Remember finished transcripts on this phone so a re-run or a speaker retry costs no quota.
+const cacheKey = f => `t:${f.name}|${f.size}`;
+function cacheGet(f) { try { const v = localStorage.getItem(cacheKey(f)); return v ? JSON.parse(v) : null; } catch { return null; } }
+function cachePut(f, data) {
+  try {
+    const keys = Object.keys(localStorage).filter(k => k.startsWith("t:")).sort((a, b) => (JSON.parse(localStorage.getItem(a)).at || 0) - (JSON.parse(localStorage.getItem(b)).at || 0));
+    while (keys.length >= 6) localStorage.removeItem(keys.shift());
+    localStorage.setItem(cacheKey(f), JSON.stringify({ ...data, at: Date.now() }));
+  } catch {}
+}
 const termList = () => ($("terms").value || "").split(/[,\n]/).map(t => t.trim()).filter(Boolean).slice(0, 60);
 
-async function start(f) {
+async function start(f, opts = {}) {
   if (busy) return;
-  busy = true; file = f; audio = null; result = null; clearNote(); setBar(0);
+  busy = true; file = f; clearNote(); setBar(0);
   $("filemeta").textContent = `${f.name} · ${(f.size / 1048576).toFixed(1)} MB`;
   ["copy", "share"].forEach(id => $(id).disabled = true);
   const t0 = performance.now();
   try {
-    const mm = $("mode").value;
-    if (mm === "deepgram") await viaDeepgram(f); else if (PROVIDERS[mm]) await viaCloud(f, mm); else await viaLocal(f);
-    if (mm !== "deepgram" && $("spk").checked && keyFor("groq")) {
-      try { await estimateSpeakers(); }
-      catch (e) { console.warn(e); note("warn", "Transcript is ready, but speaker labels couldn't be added this time. " + friendly(e)); }
+    const mm = $("mode").value, cached = cacheGet(f);
+    const cachedOk = cached && (opts.useCache || cached.mode === mm);
+    if (cachedOk) { result = cached.result; audio = { seconds: cached.seconds }; setBar(80); setMsg("Using the transcript from last time…"); }
+    else {
+      result = null; audio = null;
+      try {
+        if (mm === "deepgram") await viaDeepgram(f); else if (PROVIDERS[mm]) await viaCloud(f, mm); else await viaLocal(f);
+      } catch (e) {
+        if (mm === "groq" && /rate limit/i.test(String(e.message)) && keyFor("deepgram")) {
+          note("warn", "Groq's free limit is busy right now, so this one went through Deepgram instead (exact speaker labels, uses credit).");
+          await viaDeepgram(f);
+        } else throw e;
+      }
+      cachePut(f, { mode: mm, result, seconds: audio?.seconds || 0 });
+    }
+    const hasSpk = (result.chunks || []).some(c => c.speaker != null);
+    if (!hasSpk && $("spk").checked && keyFor("groq")) {
+      try { await estimateSpeakers(); cachePut(f, { mode: mm, result, seconds: audio?.seconds || 0 }); }
+      catch (e) {
+        console.warn(e);
+        note("warn", "Transcript is ready, but speaker labels couldn't be added this time. " + friendly(e));
+        const b = document.createElement("button"); b.type = "button"; b.textContent = "Try speaker labels again"; b.className = "retry";
+        b.addEventListener("click", () => start(f, { useCache: true })); notes.firstChild.append(document.createElement("br"), b);
+      }
     }
     const secs = (performance.now() - t0) / 1000;
     setBar(100); setMsg(`Done in ${fmtDur(secs)}.`);
@@ -339,7 +369,7 @@ async function viaCloud(f, m) {
   const r = await fetch(p.url, { method: "POST", headers: { Authorization: "Bearer " + key }, body: fd });
   setBar(80);
   if (r.status === 401) throw new Error(`${p.name} rejected the key. Open Settings and paste a new one.`);
-  if (r.status === 429) throw new Error(`${p.name} rate limit hit. Wait a bit and try again.`);
+  if (r.status === 429) { const t = await r.text(); const w = t.match(/try again in ([^."]+)/i); throw new Error(`${p.name} rate limit hit.${w ? " Try again in " + w[1] + "." : " Wait a few minutes and try again."}`); }
   if (!r.ok) { const t = await r.text(); throw new Error(`${p.name} ${r.status}: ${t.slice(0, 160)}`); }
   const j = await r.json();
   audio = { seconds: j.duration || 0 };
