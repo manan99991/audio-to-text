@@ -125,6 +125,10 @@ ul.tips{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px}
 
 /* ===== App mode (phone-first) ===== */
 [hidden]{display:none!important}
+.mapbox{padding:12px 14px 14px;border-bottom:1px solid var(--line);background:var(--card)}
+.maphead{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.daymap{width:100%;height:auto;display:block;border-radius:14px;background:var(--bg);color:var(--fg);border:1px solid var(--line)}
+
 .locrow{display:flex;align-items:center;gap:14px}
 #arrow{width:64px;height:64px;flex:none;color:var(--accent);transition:transform .3s}
 .loc-big{font-family:var(--display);font-weight:800;font-size:26px;line-height:1.1}
@@ -281,7 +285,7 @@ html.app .appnav{display:grid;grid-template-columns:repeat(5,1fr);position:fixed
 </div>
 <details class="howto">
   <summary>How the subway works</summary>
-  <p>Tap a credit card or phone at the gate, <b>one card per adult</b> ($3 a ride, capped at $35 per card for the week). Deeyan rides free if under 44 inches. The colored circles are the train lines on the signs. Check the sign says <b>"Manhattan"</b> or <b>"Brooklyn"</b> for your direction.</p>
+  <p><b>No pass needed.</b> Tap a credit card or phone at the gate, <b>the same one every time, one per adult</b>. $3 a ride, free transfer within 2 hours, and OMNY stops charging after $35 in any 7 days. This trip is about 11 taps each (~$33), so you never hit the cap. Deeyan rides free if under 44 inches. The colored circles are the train lines on the signs. Check the sign says <b>"Manhattan"</b> or <b>"Brooklyn"</b> for your direction.</p>
   <p><span class="chg">New time</span> means a time moved when the Transit Museum, Nintendo and LEGO were added. "Directions from here" opens Google Maps from where you are standing.</p>
 </details>
 
@@ -293,7 +297,7 @@ html.app .appnav{display:grid;grid-template-columns:repeat(5,1fr);position:fixed
 </div>
 
 <section class="day" id="fri" aria-labelledby="fri-h">
-  <div class="dayhead"><span class="bullet" style="background:var(--ac)">F</span><div><h2 id="fri-h">Friday, Nov 6</h2><p class="muted small">Fly to New York · times before landing are Chicago time</p><p class="dayfun">Up, up and away!</p></div></div>
+  <div class="dayhead"><span class="bullet" style="background:var(--ac)">F</span><div><h2 id="fri-h">Friday, Nov 6</h2><p class="muted small">Fly to New York · times before landing are Chicago time</p><p class="dayfun">Up, up and away!</p><p class="small" style="margin-top:6px;color:var(--warn);font-weight:700">Smart tip: charge both phones before leaving home; the Q70 bus and F train run all night, but a taxi is fine if he's asleep.</p></div></div>
 
   <div class="step" data-at="2026-11-06T15:30:00-06:00"><div class="time">3:30 PM</div><div class="what"><span class="t">Final check before leaving</span>
     <ol class="route">
@@ -324,7 +328,7 @@ html.app .appnav{display:grid;grid-template-columns:repeat(5,1fr);position:fixed
 
 <!-- ================= SATURDAY ================= -->
 <section class="day bdayday" id="sat" aria-labelledby="sat-h">
-  <div class="dayhead"><span class="bullet" style="background:var(--f)">S</span><div><h2 id="sat-h">Saturday, Nov 7 <span class="bday">Birthday</span></h2><p class="dayfun">Happy 7th birthday, Deeyan!</p><p class="muted small">Transit Museum <span class="newtag">New</span>, carousel, Brooklyn Bridge, 9/11 Memorial, cake, dinner on the 101st floor</p></div></div>
+  <div class="dayhead"><span class="bullet" style="background:var(--f)">S</span><div><h2 id="sat-h">Saturday, Nov 7 <span class="bday">Birthday</span></h2><p class="dayfun">Happy 7th birthday, Deeyan!</p><p class="muted small">Transit Museum <span class="newtag">New</span>, carousel, Brooklyn Bridge, 9/11 Memorial, cake, dinner on the 101st floor</p><p class="small" style="margin-top:6px;color:var(--warn);font-weight:700">Smart tip: ask the hotel front desk Friday night to hold the Carvel delivery Saturday. Kadamba Kafe (across the street) closes 4:30, Carvel is open till midnight.</p></div></div>
 
   <div class="step eat" data-at="2026-11-07T07:30:00-05:00"><div class="time">7:30 AM<small>Eat</small></div><div class="what"><span class="t">Breakfast at the hotel restaurant <span class="chg">New time</span></span><span class="how">Kids eat free. Ask which items have no egg (pancakes, oatmeal, toast, fruit).</span></div></div>
   <div class="step" data-at="2026-11-07T08:00:00-05:00"><div class="time">8:00 AM</div><div class="what"><span class="t">Birthday morning swim <span class="chg">New time</span></span><span class="how">Pool opens 8 AM on weekends. Out by <b>9:15</b> to dry off and dress. While he swims: <b>order the ice cream cake</b> for <b>4:00 PM</b> delivery (see To do).</span></div></div>
@@ -374,7 +378,9 @@ html.app .appnav{display:grid;grid-template-columns:repeat(5,1fr);position:fixed
     </ol>
     <span class="arrive">Arrive about 3:20 PM</span>
     <div class="btns"><a class="btn" href="https://www.google.com/maps/dir/?api=1&amp;destination=Holiday+Inn+Brooklyn+Downtown+300+Schermerhorn+St+Brooklyn&amp;travelmode=transit" target="_blank" rel="noopener">Directions from here</a></div></div></div>
-  <div class="step" data-at="2026-11-07T16:00:00-05:00"><div class="time">4:00 PM</div><div class="what"><span class="t">Ice cream cake in the room! <span class="bday">Birthday</span> <span class="chg">New time</span></span><span class="how">Pick up the delivery at the front desk. Then rest and dress for dinner (warm layers for the tower). Leave at 5:40.</span></div></div>
+  <div class="step eat new" data-at="2026-11-07T15:20:00-05:00"><div class="time">3:20 PM<small>Eat</small></div><div class="what"><span class="t">Kadamba Kafe: egg-free treats, across the street <span class="newtag">New</span></span><span class="how"><b>305 Schermerhorn St</b>, directly opposite the hotel. Run by the Hare Krishna temple, so <b>everything is egg-free</b>. Grab a plant-based dessert or a snack for the room. <b>Open Sat 11:30 AM–4:30 PM</b>, so go before you head up.</span>
+    <div class="btns"><a class="btn" href="https://www.google.com/maps/dir/?api=1&amp;destination=Kadamba+Kafe+305+Schermerhorn+St+Brooklyn&amp;travelmode=walking" target="_blank" rel="noopener">Walking from here</a><a class="chip" href="#t-kadamba">Hours</a></div></div></div>
+  <div class="step" data-at="2026-11-07T16:00:00-05:00"><div class="time">4:00 PM</div><div class="what"><span class="t">Ice cream cake in the room! <span class="bday">Birthday</span> <span class="chg">New time</span></span><span class="how">Carvel delivery (DoorDash) to the front desk, or pick it up at <b>Carvel, 48 5th Ave</b> (12-min walk). Candles, song, cake. Then rest and dress for dinner (warm layers for the tower). Leave at 5:40. <a class="chip" href="#t-cake">Cake order</a></span></div></div>
 
   <div class="step go" data-at="2026-11-07T17:40:00-05:00"><div class="time">5:40 PM<small>Leave hotel</small></div><div class="what"><span class="t">Hotel → One World Observatory</span>
     <ol class="route">
@@ -401,7 +407,7 @@ html.app .appnav{display:grid;grid-template-columns:repeat(5,1fr);position:fixed
 
 <!-- ================= SUNDAY ================= -->
 <section class="day" id="sun" aria-labelledby="sun-h">
-  <div class="dayhead"><span class="bullet" style="background:var(--g)">S</span><div><h2 id="sun-h">Sunday, Nov 8</h2><p class="dayfun">Boats, bright lights and LEGO</p><p class="muted small">Statue of Liberty, Madison Square Garden, Times Square, Nintendo &amp; LEGO <span class="newtag">New</span></p></div></div>
+  <div class="dayhead"><span class="bullet" style="background:var(--g)">S</span><div><h2 id="sun-h">Sunday, Nov 8</h2><p class="dayfun">Boats, bright lights and LEGO</p><p class="muted small">Statue of Liberty, Madison Square Garden, Times Square, Nintendo &amp; LEGO <span class="newtag">New</span></p><p class="small" style="margin-top:6px;color:var(--warn);font-weight:700">Smart tip: bring quarters for the Statue lockers, and eat a big breakfast; lunch is at 3:25.</p></div></div>
 
   <div class="step eat" data-at="2026-11-08T08:00:00-05:00"><div class="time">8:00 AM<small>Eat</small></div><div class="what"><span class="t">Breakfast at the hotel</span><span class="how">Pack snacks: lunch is late today (about 3:25 PM).</span></div></div>
 
@@ -477,7 +483,7 @@ html.app .appnav{display:grid;grid-template-columns:repeat(5,1fr);position:fixed
 
 <!-- ================= MONDAY ================= -->
 <section class="day" id="mon" aria-labelledby="mon-h">
-  <div class="dayhead"><span class="bullet" style="background:var(--r)">M</span><div><h2 id="mon-h">Monday, Nov 9</h2><p class="dayfun">Dinosaurs, then home</p><p class="muted small">Natural History Museum, then straight to the airport with bags</p></div></div>
+  <div class="dayhead"><span class="bullet" style="background:var(--r)">M</span><div><h2 id="mon-h">Monday, Nov 9</h2><p class="dayfun">Dinosaurs, then home</p><p class="muted small">Natural History Museum, then straight to the airport with bags</p><p class="small" style="margin-top:6px;color:var(--warn);font-weight:700">Smart tip: check out and drop bags at LuggageHero first; the museum won't take luggage.</p></div></div>
 
   <div class="step" data-at="2026-11-09T07:00:00-05:00"><div class="time">7:00 AM</div><div class="what"><span class="t">Last swim</span><span class="how">Pool open 7 AM–12 PM on weekdays.</span></div></div>
   <div class="step eat" data-at="2026-11-09T07:45:00-05:00"><div class="time">7:45 AM<small>Eat</small></div><div class="what"><span class="t">Breakfast at the hotel</span></div></div>
@@ -526,7 +532,7 @@ html.app .appnav{display:grid;grid-template-columns:repeat(5,1fr);position:fixed
     <p class="small muted">Everything you haven't paid for yet, with where to get it. Free stops are listed too, so you know nothing needs booking.</p>
     <div>
       <div class="buy"><div><div class="b-t">LuggageHero, 2 bags</div><div class="b-s">Mon Nov 9, 9:50 AM–2:15 PM · about $14–$19 · book in the app or online</div></div><a class="btn solid" href="https://app.luggagehero.com/" target="_blank" rel="noopener">Book</a></div>
-      <div class="buy"><div><div class="b-t">Ice cream cake</div><div class="b-s">Order Sat Nov 7 morning for 4:00 PM delivery · about $45–$70 · no egg</div></div><span class="btns" style="margin:0"><a class="btn solid" href="https://www.carvel.com/" target="_blank" rel="noopener">Carvel</a><a class="btn" href="https://www.doordash.com/" target="_blank" rel="noopener">DoorDash</a></span></div>
+      <div class="buy"><div><div class="b-t">Ice cream cake · Carvel 48 5th Ave</div><div class="b-s">Order Fri Nov 6 for Sat 4:00 PM · Classic Round, no egg layers · about $35–$55</div></div><span class="btns" style="margin:0"><a class="btn solid" href="https://www.carvel.com/" target="_blank" rel="noopener">Carvel</a><a class="btn" href="https://www.doordash.com/" target="_blank" rel="noopener">DoorDash</a></span></div>
       <div class="buy"><div><div class="b-t">Jane's Carousel</div><div class="b-s">Sat · $4 a ride · buy at the ticket window at the carousel (no online tickets)</div></div><a class="btn" href="https://janescarousel.com/hours/" target="_blank" rel="noopener">Website</a></div>
       <div class="buy"><div><div class="b-t">SeaGlass Carousel</div><div class="b-s">Sun · $6 a ride · buy at the kiosk in Battery Park (no online tickets) · opens 11 AM</div></div><a class="btn" href="https://seaglasscarousel.nyc/" target="_blank" rel="noopener">Website</a></div>
       <div class="buy"><div><div class="b-t">LEGO Store, Fifth Avenue <span class="newtag">New</span></div><div class="b-s">Sun · free to walk in, no booking · Build-a-Minifigure station inside (pay in store)</div></div><a class="btn" href="https://www.lego.com/en-us/stores/store/5th-avenue" target="_blank" rel="noopener">Website</a></div>
@@ -670,13 +676,25 @@ html.app .appnav{display:grid;grid-template-columns:repeat(5,1fr);position:fixed
   </div>
 
   <div class="ticket pending" id="t-cake">
-    <h3>Ice cream cake <span class="chip">Order Sat morning</span></h3>
+    <h3>Ice cream cake · Carvel <span class="chip">Order Fri Nov 6</span></h3>
     <dl class="kv">
-      <dt>Deliver</dt><dd>Sat Nov 7 · <b>4:00 PM</b> <span class="chg">New time</span> · Holiday Inn front desk, 300 Schermerhorn St</dd>
-      <dt>From</dt><dd>A Carvel or Baskin-Robbins near the hotel · check it has <b>no egg</b></dd>
-      <dt>Cost</dt><dd>About $45–$70</dd>
+      <dt>Store</dt><dd>Carvel, <b>48 5th Ave, Brooklyn</b> (12-min walk from the hotel) · open daily 11 AM–midnight</dd>
+      <dt>Phone</dt><dd><a href="tel:+12123656542">212-365-6542</a></dd>
+      <dt>What to order</dt><dd><b>Classic Round ice cream cake</b> (vanilla + chocolate ice cream, crunchies, whipped frosting). Writing: "Happy 7th Birthday Deeyan"</dd>
+      <dt>Egg-free</dt><dd>Carvel's vanilla and chocolate ice cream have <b>no eggs</b>. Say: <b>"no brownie, cookie or pound-cake layers, no marshmallow topping"</b>; those are the egg items.</dd>
+      <dt>Get it</dt><dd>Sat Nov 7 · <b>4:00 PM</b> · DoorDash to the Holiday Inn front desk (300 Schermerhorn St), or pick up on foot</dd>
+      <dt>Cost</dt><dd>About $35–$55 plus delivery</dd>
     </dl>
-    <div class="btns"><a class="btn solid" href="https://www.doordash.com/" target="_blank" rel="noopener">DoorDash</a><a class="btn" href="https://www.ubereats.com/" target="_blank" rel="noopener">Uber Eats</a><a class="btn" href="https://www.carvel.com/" target="_blank" rel="noopener">Carvel</a></div>
+    <div class="btns"><a class="btn solid" href="https://www.carvel.com/" target="_blank" rel="noopener">Order on Carvel.com</a><a class="btn" href="https://www.doordash.com/" target="_blank" rel="noopener">DoorDash</a><a class="btn" href="tel:+12123656542">Call Carvel</a><a class="btn" href="https://www.google.com/maps/dir/?api=1&amp;destination=Carvel+48+5th+Ave+Brooklyn&amp;travelmode=walking" target="_blank" rel="noopener">Directions from here</a></div>
+  </div>
+  <div class="ticket newt" id="t-kadamba">
+    <h3>Egg-free food across the street <span class="newtag">New</span></h3>
+    <dl class="kv">
+      <dt>Kadamba Kafe</dt><dd><b>305 Schermerhorn St</b>, opposite the hotel · plant-based cafe, all egg-free · <b>Thu–Sun 11:30 AM–4:30 PM</b> (closed Mon–Wed) · acai bowls, wraps, desserts</dd>
+      <dt>Govinda's Kitchen</dt><dd>Same building, 305 Schermerhorn St · Hare Krishna veg buffet (kichari, dal, rice, sweets), all egg-free, cash only · <b>Mon–Fri 12–3 PM lunch · Fri &amp; Sat 5–9 PM dinner</b> · <a href="tel:+17188756127">718-875-6127</a></dd>
+      <dt>When they fit</dt><dd><b>Sat 3:20 PM</b> Kadamba on the way back to the hotel (in the plan). Govinda's doesn't fit the booked meals, but it's your 2-minute backup if a dinner plan falls through on Sat (5–9 PM). Call first; hours change.</dd>
+    </dl>
+    <div class="btns"><a class="btn" href="https://www.google.com/maps/dir/?api=1&amp;destination=305+Schermerhorn+St+Brooklyn&amp;travelmode=walking" target="_blank" rel="noopener">Directions from here</a><a class="btn" href="tel:+17188756127">Call Govinda's</a></div>
   </div>
 </section>
 
@@ -695,7 +713,7 @@ html.app .appnav{display:grid;grid-template-columns:repeat(5,1fr);position:fixed
   <label class="todo" for="d4"><input type="checkbox" id="d4"><div class="stack" style="gap:6px"><span class="todo-title">Add MSG tickets to phone wallet</span><span class="small muted">Ticketmaster app → My Events → Add to Wallet.</span></div></label>
   <label class="todo" for="d5"><input type="checkbox" id="d5"><div class="stack" style="gap:6px"><span class="todo-title">Measure Deeyan (44 inches?)</span><span class="small muted">Under 44 in = rides the subway free. Taller = needs his own tap ($3).</span></div></label>
   <label class="todo" for="d6"><input type="checkbox" id="d6"><div class="stack" style="gap:6px"><span class="todo-title">Southwest check-in · Thu Nov 5, 7:15 PM Chicago time</span><span class="small muted">Check in the minute it opens so you sit together. Check your bag allowance on the boarding pass.</span><span class="btns"><a class="btn solid" href="https://www.southwest.com/air/check-in/" target="_blank" rel="noopener">Check in</a></span></div></label>
-  <label class="todo" for="d7"><input type="checkbox" id="d7"><div class="stack" style="gap:6px"><span class="todo-title">Order the ice cream cake · Sat Nov 7 morning</span><span class="small muted">Delivery <b>4:00 PM</b> to the hotel front desk. No egg.</span><span class="btns"><a class="btn solid" href="https://www.doordash.com/" target="_blank" rel="noopener">DoorDash</a><a class="btn" href="https://www.ubereats.com/" target="_blank" rel="noopener">Uber Eats</a></span></div></label>
+  <label class="todo" for="d7"><input type="checkbox" id="d7"><div class="stack" style="gap:6px"><span class="todo-title">Order the ice cream cake · Fri Nov 6 (before you fly)</span><span class="small muted">Carvel 48 5th Ave, 212-365-6542. Classic Round, "Happy 7th Birthday Deeyan", no brownie/cookie/pound-cake layers. Deliver Sat <b>4:00 PM</b> to the hotel front desk.</span><span class="btns"><a class="btn solid" href="https://www.carvel.com/" target="_blank" rel="noopener">Carvel</a><a class="btn" href="https://www.doordash.com/" target="_blank" rel="noopener">DoorDash</a><a class="btn" href="https://www.ubereats.com/" target="_blank" rel="noopener">Uber Eats</a></span></div></label>
   <label class="todo" for="d8"><input type="checkbox" id="d8"><div class="stack" style="gap:6px"><span class="todo-title">Pack warm</span><span class="small muted">Usually 40s–50s °F, colder on the bridge and ferry. Hats, gloves, jackets, swimsuits.</span><span class="btns"><a class="btn" href="https://forecast.weather.gov/MapClick.php?lat=40.7128&amp;lon=-74.006" target="_blank" rel="noopener">NYC weather</a></span></div></label>
 </section>
 
@@ -721,12 +739,12 @@ html.app .appnav{display:grid;grid-template-columns:repeat(5,1fr);position:fixed
 
       <tr><td>LuggageHero, 2 bags</td><td>To book</td><td class="n">$14–$19</td></tr>
       <tr><td>Ice cream cake</td><td>Sat</td><td class="n">$45–$70</td></tr>
-      <tr><td>All subway + bus rides (Q70 free; $35 cap per card)</td><td>Trip</td><td class="n">$70–$105</td></tr>
+      <tr><td>All subway + bus rides (about 11 taps each; Q70 free; Deeyan free)</td><td>Trip</td><td class="n">$66</td></tr>
       <tr><td>Carousels (Jane's + SeaGlass)</td><td>Trip</td><td class="n">$30</td></tr>
       <tr><td>Meals (adult breakfasts, lunches, Ellen's, snacks)</td><td>Trip</td><td class="n">$400–$530</td></tr>
       <tr><td>Souvenirs &amp; treats</td><td>Trip</td><td class="n">$100–$200</td></tr>
-      <tr class="total"><td>Still to spend</td><td></td><td class="n">$659–$954</td></tr>
-      <tr class="total"><td>Whole trip</td><td></td><td class="n">$3,392–$3,687</td></tr>
+      <tr class="total"><td>Still to spend</td><td></td><td class="n">$655–$915</td></tr>
+      <tr class="total"><td>Whole trip</td><td></td><td class="n">$3,388–$3,648</td></tr>
     </tbody>
   </table>
   </div>
@@ -743,6 +761,8 @@ html.app .appnav{display:grid;grid-template-columns:repeat(5,1fr);position:fixed
     <div class="contact"><div><div><b>Ellen's Stardust Diner</b> · Sun dinner</div><div class="num">+1 212-956-5151</div></div><div class="btns"><a class="btn" href="tel:+12129565151">Call</a><button class="btn copy" type="button" data-copy="+1 212-956-5151">Copy</button></div></div>
     <div class="contact"><div><div><b>LEGO Store</b> · Fifth Ave</div><div class="num">+1 929-493-3074</div></div><div class="btns"><a class="btn" href="tel:+19294933074">Call</a><button class="btn copy" type="button" data-copy="+1 929-493-3074">Copy</button></div></div>
     <div class="contact"><div><div><b>Natural History Museum</b></div><div class="num">+1 212-769-5100</div></div><div class="btns"><a class="btn" href="tel:+12127695100">Call</a><button class="btn copy" type="button" data-copy="+1 212-769-5100">Copy</button></div></div>
+    <div class="contact"><div><div><b>Carvel</b> · 48 5th Ave, cake</div><div class="num">+1 212-365-6542</div></div><div class="btns"><a class="btn" href="tel:+12123656542">Call</a><button class="btn copy" type="button" data-copy="+1 212-365-6542">Copy</button></div></div>
+    <div class="contact"><div><div><b>Govinda's Kitchen</b> · veg buffet across the street</div><div class="num">+1 718-875-6127</div></div><div class="btns"><a class="btn" href="tel:+17188756127">Call</a><button class="btn copy" type="button" data-copy="+1 718-875-6127">Copy</button></div></div>
     <div class="contact"><div><div><b>Vatan</b> · backup veg dinner (thali)</div><div class="num">+1 212-689-5666</div></div><div class="btns"><a class="btn" href="tel:+12126895666">Call</a><button class="btn copy" type="button" data-copy="+1 212-689-5666">Copy</button></div></div>
   </div>
 </section>
@@ -892,6 +912,7 @@ html.app .appnav{display:grid;grid-template-columns:repeat(5,1fr);position:fixed
   }
   progress();
 
+
   /* ---------- jump to anything ---------- */
   function goTo(el){
     if (!el) return;
@@ -966,9 +987,9 @@ html.app .appnav{display:grid;grid-template-columns:repeat(5,1fr);position:fixed
     'One World Observatory 117 West St New York':[40.7130,-74.0132],'Castle Clinton National Monument':[40.7034,-74.0170],'SeaGlass Carousel Battery Park':[40.7027,-74.0152],
     'Madison Square Garden':[40.7505,-73.9934],'Saravanaa Bhavan 81 Lexington Ave New York':[40.7416,-73.9834],'Times Square New York':[40.7580,-73.9855],
     'FAO Schwarz 30 Rockefeller Plaza':[40.7589,-73.9790],'Nintendo NY 10 Rockefeller Plaza':[40.7584,-73.9794],'LEGO Store 636 Fifth Ave New York':[40.7597,-73.9769],
-    "Ellen's Stardust Diner 1650 Broadway":[40.7623,-73.9838],'American Museum of Natural History Rose Center 81st Street':[40.7817,-73.9730]
+    "Ellen's Stardust Diner 1650 Broadway":[40.7623,-73.9838],'American Museum of Natural History Rose Center 81st Street':[40.7817,-73.9730],'Kadamba Kafe 305 Schermerhorn St Brooklyn':[40.6876,-73.9821],'305 Schermerhorn St Brooklyn':[40.6876,-73.9821],'Carvel 48 5th Ave Brooklyn':[40.6817,-73.9771]
   };
-  var NAMES = {'Holiday Inn Brooklyn Downtown 300 Schermerhorn St Brooklyn':'the hotel','New York Transit Museum 99 Schermerhorn St Brooklyn':'Transit Museum','Eataly NYC Downtown 101 Liberty St':'Eataly','One World Observatory 117 West St New York':'One World Observatory','Castle Clinton National Monument':'Castle Clinton (ferry)','Saravanaa Bhavan 81 Lexington Ave New York':'Saravanaa Bhavan','American Museum of Natural History Rose Center 81st Street':'Natural History Museum','Chicago Midway International Airport':'Midway Airport','LaGuardia Airport Terminal B':'LaGuardia Terminal B',"Ellen's Stardust Diner 1650 Broadway":"Ellen's Stardust Diner",'LEGO Store 636 Fifth Ave New York':'LEGO Store','Nintendo NY 10 Rockefeller Plaza':'Nintendo NY','FAO Schwarz 30 Rockefeller Plaza':'FAO Schwarz','Times Square New York':'Times Square','9/11 Memorial Pools':'9/11 Memorial pools','SeaGlass Carousel Battery Park':'SeaGlass Carousel',"Jane's Carousel Brooklyn":"Jane's Carousel",'Madison Square Garden':'Madison Square Garden'};
+  var NAMES = {'Holiday Inn Brooklyn Downtown 300 Schermerhorn St Brooklyn':'the hotel','New York Transit Museum 99 Schermerhorn St Brooklyn':'Transit Museum','Eataly NYC Downtown 101 Liberty St':'Eataly','One World Observatory 117 West St New York':'One World Observatory','Castle Clinton National Monument':'Castle Clinton (ferry)','Saravanaa Bhavan 81 Lexington Ave New York':'Saravanaa Bhavan','American Museum of Natural History Rose Center 81st Street':'Natural History Museum','Chicago Midway International Airport':'Midway Airport','LaGuardia Airport Terminal B':'LaGuardia Terminal B',"Ellen's Stardust Diner 1650 Broadway":"Ellen's Stardust Diner",'LEGO Store 636 Fifth Ave New York':'LEGO Store','Nintendo NY 10 Rockefeller Plaza':'Nintendo NY','FAO Schwarz 30 Rockefeller Plaza':'FAO Schwarz','Times Square New York':'Times Square','9/11 Memorial Pools':'9/11 Memorial pools','SeaGlass Carousel Battery Park':'SeaGlass Carousel',"Jane's Carousel Brooklyn":"Jane's Carousel",'Madison Square Garden':'Madison Square Garden','Kadamba Kafe 305 Schermerhorn St Brooklyn':'Kadamba Kafe','305 Schermerhorn St Brooklyn':"Govinda's / Kadamba",'Carvel 48 5th Ave Brooklyn':'Carvel'};
   function hav(a,b){ var R=6371000, toR=Math.PI/180, dLat=(b[0]-a[0])*toR, dLon=(b[1]-a[1])*toR, la1=a[0]*toR, la2=b[0]*toR; var h=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(la1)*Math.cos(la2)*Math.sin(dLon/2)*Math.sin(dLon/2); return 2*R*Math.asin(Math.sqrt(h)); }
   function bearing(a,b){ var toR=Math.PI/180, y=Math.sin((b[1]-a[1])*toR)*Math.cos(b[0]*toR), x=Math.cos(a[0]*toR)*Math.sin(b[0]*toR)-Math.sin(a[0]*toR)*Math.cos(b[0]*toR)*Math.cos((b[1]-a[1])*toR); return (Math.atan2(y,x)*180/Math.PI+360)%360; }
   function compass(d){ return ['north','northeast','east','southeast','south','southwest','west','northwest'][Math.round(d/45)%8]; }
@@ -989,7 +1010,7 @@ html.app .appnav{display:grid;grid-template-columns:repeat(5,1fr);position:fixed
     $('#loc-sub').textContent = 'Head '+compass(br)+(d>2500?' · too far to walk, use the train or a car':(walk?' · about '+walk+' min on foot':''));
     var rot = heading==null ? br : (br-heading); $('#arrow').style.transform='rotate('+rot+'deg)'; $('#arrow').setAttribute('title', heading==null?'Arrow points relative to north (hold phone flat, top = north)':'Arrow points the way');
     $('#loc-dir').href=gm(dest,'transit'); $('#loc-walk').href=gm(dest,'walking'); $('#loc-uber').href=uber(dest);
-    lastTarget=dest;
+    lastTarget=dest; placeMe();
   }
   $('#locbtn').addEventListener('click', function(){
     var stx=$('#loc-status');
@@ -1029,6 +1050,61 @@ html.app .appnav{display:grid;grid-template-columns:repeat(5,1fr);position:fixed
     });
   });
   if ('Notification' in window && Notification.permission==='granted') ab.textContent='On';
+
+  /* ---------- day maps (offline SVG) ---------- */
+  var DAYCOL={fri:'#0039A6',sat:'#FF6319',sun:'#00933C',mon:'#EE352E'};
+  function dayStops(d){
+    var sec=$('#'+d), out=[];
+    $$('.step[data-at]',sec).forEach(function(st){
+      var dest=destOf(st); if(!dest){ var a=$$('a',st).filter(function(x){return /maps\/(dir|search)/.test(x.href);})[0]; if(a){ var m=a.href.match(/(?:destination|query)=([^&]+)/); if(m) dest=decodeURIComponent(m[1].replace(/\+/g,' ')); } }
+      if(!dest||!GEO[dest]) return;
+      if(out.length && out[out.length-1].dest===dest) return;
+      var tm=$('.time',st).firstChild.textContent.trim(), tt=$('.t',st).textContent.replace(/Birthday|New time.*|New\b/g,'').trim();
+      out.push({dest:dest,ll:GEO[dest],time:tm,title:tt,go:st.classList.contains('go'),eat:st.classList.contains('eat'),el:st});
+    });
+    if(d!=='fri' && (!out.length || out[0].dest.indexOf('Holiday Inn')<0)) out.unshift({dest:'Holiday Inn Brooklyn Downtown 300 Schermerhorn St Brooklyn',ll:GEO['Holiday Inn Brooklyn Downtown 300 Schermerhorn St Brooklyn'],time:'start',title:'Hotel',go:false});
+    if(d==='fri') out=out.filter(function(p){return p.ll[1]>-75;});
+    return out;
+  }
+  function esc(t){ return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
+  function drawMap(d){
+    var pts=dayStops(d); if(pts.length<2) return;
+    var W=360,H=380,P=34, lats=pts.map(function(p){return p.ll[0];}), lons=pts.map(function(p){return p.ll[1];});
+    var minLa=Math.min.apply(0,lats), maxLa=Math.max.apply(0,lats), minLo=Math.min.apply(0,lons), maxLo=Math.max.apply(0,lons);
+    var k=Math.cos((minLa+maxLa)/2*Math.PI/180), spanX=Math.max((maxLo-minLo)*k,0.004), spanY=Math.max(maxLa-minLa,0.004);
+    var sc=Math.min((W-2*P)/spanX,(H-2*P)/spanY), cx=(minLo+maxLo)/2, cy=(minLa+maxLa)/2;
+    function X(ll){return W/2+(ll[1]-cx)*k*sc;} function Y(ll){return H/2-(ll[0]-cy)*sc;}
+    var col=DAYCOL[d], svg=['<svg viewBox="0 0 '+W+' '+H+'" class="daymap" role="img" aria-label="Map of the day\'s stops">'];
+    svg.push('<defs><pattern id="g'+d+'" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0V24" fill="none" stroke="currentColor" stroke-opacity=".08"/></pattern></defs><rect width="'+W+'" height="'+H+'" rx="14" fill="url(#g'+d+')"/>');
+    // East River hint: between Brooklyn (lat<40.70,lon>-73.99) and Manhattan — draw a soft band if the day crosses it
+    var cross=pts.some(function(p){return p.ll[1]<-73.995;}) && pts.some(function(p){return p.ll[1]>-73.99;});
+    if(cross){ var rx=X([40.70,-73.996]); svg.push('<path d="M'+(rx-18)+' 0 Q'+(rx+10)+' '+(H/2)+' '+(rx-6)+' '+H+' L'+(rx+10)+' '+H+' Q'+(rx+26)+' '+(H/2)+' '+(rx)+' 0 Z" fill="#4DA8DA" fill-opacity=".18"/><text x="'+(rx+2)+'" y="'+(H-10)+'" font-size="9" fill="#4DA8DA" font-weight="700" transform="rotate(-78 '+(rx+2)+' '+(H-10)+')">East River</text>'); }
+    // route
+    var path=pts.map(function(p,i){return (i?'L':'M')+X(p.ll).toFixed(1)+' '+Y(p.ll).toFixed(1);}).join(' ');
+    svg.push('<path d="'+path+'" fill="none" stroke="'+col+'" stroke-width="4" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="8 6" opacity=".9"/>');
+    // cluster nearby stops so labels don't pile up
+    var clusters=[];
+    pts.forEach(function(p,i){ var x=X(p.ll),y=Y(p.ll),c=null; for(var j=0;j<clusters.length;j++){ if(Math.hypot(clusters[j].x-x,clusters[j].y-y)<22){c=clusters[j];break;} } if(c){c.items.push(i);} else clusters.push({x:x,y:y,items:[i]}); });
+    clusters.forEach(function(c){
+      var first=c.items[0], last=c.items[c.items.length-1], anyEat=c.items.some(function(i){return pts[i].eat;});
+      var side = c.x>W/2 ? -1 : 1, lines=c.items.map(function(i){ var p=pts[i]; return {n:i+1,lab:(NAMES[p.dest]||p.dest).replace(/ \(.*$/,''),time:p.time}; });
+      var num = first===last ? String(first+1) : (first+1)+'–'+(last+1);
+      svg.push('<g class="mp" data-i="'+first+'"><circle cx="'+c.x+'" cy="'+c.y+'" r="'+(num.length>2?13:11)+'" fill="'+(anyEat&&c.items.length===1?'#1E7B4A':col)+'" stroke="#fff" stroke-width="2.5"/><text x="'+c.x+'" y="'+(c.y+4)+'" text-anchor="middle" font-size="'+(num.length>2?9:11)+'" font-weight="800" fill="#fff">'+num+'</text>');
+      var y0=c.y-((lines.length-1)*11)/2-2;
+      lines.forEach(function(l,k){ var yy=y0+k*22; svg.push('<text x="'+(c.x+side*17)+'" y="'+yy+'" text-anchor="'+(side>0?'start':'end')+'" font-size="11" font-weight="700" fill="currentColor">'+(lines.length>1?l.n+' · ':'')+esc(l.lab)+'</text><text x="'+(c.x+side*17)+'" y="'+(yy+11)+'" text-anchor="'+(side>0?'start':'end')+'" font-size="10" fill="currentColor" opacity=".7">'+esc(l.time)+'</text>'); });
+      svg.push('</g>');
+    });
+    svg.push('<circle id="me-'+d+'" r="7" fill="#E4572E" stroke="#fff" stroke-width="2" style="display:none"><animate attributeName="r" values="6;9;6" dur="1.6s" repeatCount="indefinite"/></circle>');
+    svg.push('</svg>');
+    var gmap='https://www.google.com/maps/dir/'+pts.map(function(p){return encodeURIComponent(p.dest);}).join('/');
+    var box=document.createElement('div'); box.className='mapbox';
+    box.innerHTML='<div class="maphead"><b>Today on the map</b><span class="small muted">'+pts.length+' stops · tap a number to jump</span></div>'+svg.join('')+'<div class="btns"><a class="btn" target="_blank" rel="noopener" href="'+gmap+'">Open whole day in Google Maps</a></div>';
+    $('.dayhead',$('#'+d)).insertAdjacentElement('afterend', box);
+    $$('.mp',box).forEach(function(g){ g.style.cursor='pointer'; g.addEventListener('click',function(){ var p=pts[+g.dataset.i]; if(p.el) goTo(p.el); }); });
+    box._proj={X:X,Y:Y};
+  }
+  days.forEach(drawMap);
+  function placeMe(){ if(!lastFix) return; days.forEach(function(d){ var box=$('#'+d+' .mapbox'); if(!box) return; var c=$('#me-'+d); var x=box._proj.X(lastFix), y=box._proj.Y(lastFix); if(x>0&&x<360&&y>0&&y<380){ c.setAttribute('cx',x); c.setAttribute('cy',y); c.style.display=''; } else c.style.display='none'; }); }
 
   /* ---------- swipe between days ---------- */
   var sx=0, sy=0, tracking=false;
