@@ -1,0 +1,1119 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"></head><body>
+<title>NYC Birthday Trip</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: one narrow column built for a phone. Sticky day tabs on top, a "Next up" card, then each day as a timeline: blue = leave/travel, green = eat, white = do. Tickets, money and phone numbers at the bottom. */
+:root{
+  --bg:#F4F6FA; --card:#FFFFFF; --fg:#17223B; --muted:#55607A; --line:#DCE1EB;
+  --accent:#1F4FD1; --accent-soft:#E6ECFB; --go:#EEF3FF; --eat:#EAF6EF; --ok:#1E7B4A; --ok-soft:#E3F3EA; --warn:#9A5B00; --warn-soft:#FFF1DB; --bday:#E4572E; --new:#B0127A; --new-soft:#FCE6F3;
+  --ac:#0039A6; --f:#FF6319; --r:#EE352E; --g:#00933C; --y:#FCCC0A; --q:#6A3FA0;
+  --display:"Archivo", "Helvetica Neue", Arial, sans-serif;
+  --body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F1524; --card:#18203A; --fg:#EEF1F8; --muted:#A7B0C6; --line:#2A3558;
+  --accent:#8AA8FF; --accent-soft:#1F2B52; --go:#1B2546; --eat:#17302A; --ok:#7FD6A4; --ok-soft:#173627; --warn:#F2C069; --warn-soft:#3A2C12; --new:#FF8AD0; --new-soft:#3A1630; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F1524; --card:#18203A; --fg:#EEF1F8; --muted:#A7B0C6; --line:#2A3558;
+  --accent:#8AA8FF; --accent-soft:#1F2B52; --go:#1B2546; --eat:#17302A; --ok:#7FD6A4; --ok-soft:#173627; --warn:#F2C069; --warn-soft:#3A2C12; --new:#FF8AD0; --new-soft:#3A1630; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:72px}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:17px;line-height:1.5;padding:0 16px 72px}
+.wrap{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:24px}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;line-height:1.15}
+h1{font-size:32px;font-weight:800}
+h2{font-size:24px;font-weight:800}
+h3{font-size:19px;font-weight:800}
+p{margin:0}
+a{color:var(--accent)}
+.muted{color:var(--muted)}
+.small{font-size:15px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+.stack{display:flex;flex-direction:column;gap:12px}
+/* nav */
+nav.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);margin:0 -16px;padding:10px 16px;border-bottom:1px solid var(--line);overflow-x:auto;white-space:nowrap}
+nav.tabs a{display:inline-flex;align-items:center;min-height:40px;padding:6px 14px;margin-right:6px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--fg);text-decoration:none;font-weight:700;font-size:15px}
+nav.tabs a.today{background:var(--accent);border-color:var(--accent);color:var(--card)}
+header{padding-top:18px}
+header .sub{font-size:17px;color:var(--muted);margin-top:6px}
+/* buttons */
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.btn{display:inline-flex;align-items:center;gap:6px;min-height:42px;padding:8px 14px;border-radius:999px;border:1px solid var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:700;font-size:15px;text-decoration:none;cursor:pointer;font-family:var(--body)}
+.btn.solid{background:var(--accent);color:var(--card)}
+.btn:focus-visible,input:focus-visible,nav a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;background:var(--warn-soft);border:1px solid var(--warn);color:var(--fg);font-size:14px;font-weight:700;text-decoration:none}
+.note{border-radius:12px;padding:12px 14px;font-size:16px}
+.note.ok{background:var(--ok-soft);border:1px solid var(--ok)}
+.note.warn{background:var(--warn-soft);border:1px solid var(--warn)}
+/* next up */
+.next{background:var(--accent);color:var(--card);border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:6px}
+.next .label{font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.85}
+.next .big{font-family:var(--display);font-weight:800;font-size:22px;line-height:1.2}
+.next a{color:var(--card);font-weight:700}
+/* days */
+.day{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.dayhead{display:flex;align-items:center;gap:14px;padding:16px 18px;border-bottom:1px solid var(--line)}
+.bullet{flex:none;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;color:#fff;font-family:var(--display);font-weight:800;font-size:20px}
+.step{display:grid;grid-template-columns:84px minmax(0,1fr);gap:14px;padding:16px 18px;border-bottom:1px solid var(--line)}
+.step:last-child{border-bottom:0}
+.step.go{background:var(--go)}
+.step.eat{background:var(--eat)}
+.step.new{background:var(--new-soft);box-shadow:inset 6px 0 0 var(--new)}
+.step.new .time small{color:var(--new)}
+.newtag{display:inline-block;margin-left:6px;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#fff;background:var(--new);padding:1px 8px;border-radius:999px;vertical-align:3px}
+:root[data-theme="dark"] .newtag{color:#17223B}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .newtag{color:#17223B}}
+.chg{display:inline-block;margin-left:6px;font-size:12px;font-weight:700;color:var(--new);border:1px solid var(--new);padding:0 7px;border-radius:999px;vertical-align:2px}
+li.new{background:var(--new-soft);border-radius:8px;padding:4px 6px;margin:0 -6px}
+.ticket.newt{border-left-color:var(--new)}
+tr.new td{background:var(--new-soft)}
+.buy{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.buy:last-child{border-bottom:0}
+.buy .b-t{font-weight:700}
+.buy .b-s{font-size:15px;color:var(--muted)}
+.buy .btn{white-space:nowrap;justify-self:start}
+@media (max-width:480px){.buy{grid-template-columns:1fr}}
+.step.now{outline:3px solid var(--bday);outline-offset:-3px}
+.time{font-weight:700;font-variant-numeric:tabular-nums;font-size:15px;padding-top:2px;display:flex;flex-direction:column;gap:2px}
+.time small{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.step.eat .time small{color:var(--ok)}
+.what{display:flex;flex-direction:column;gap:6px;min-width:0}
+.what .t{font-weight:700;font-size:18px}
+.how{font-size:16px;color:var(--muted)}
+.how b{color:var(--fg)}
+.bday{display:inline-block;margin-left:6px;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#fff;background:var(--bday);padding:1px 8px;border-radius:999px;vertical-align:3px}
+ol.route{margin:2px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:7px;counter-reset:r}
+ol.route li{counter-increment:r;display:grid;grid-template-columns:24px minmax(0,1fr);gap:8px;font-size:16px}
+ol.route li::before{content:counter(r);display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--card);border:1px solid var(--line);font-size:12px;font-weight:700;color:var(--muted);margin-top:1px}
+.arrive{font-weight:700;color:var(--ok);font-size:15px}
+.backup{font-size:15px;color:var(--muted)}
+.ln{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;border-radius:11px;color:#fff;font-weight:700;font-size:13px;vertical-align:-3px;margin:0 1px}
+.ln.ac{background:var(--ac)} .ln.f{background:var(--f)} .ln.r{background:var(--r)} .ln.g{background:var(--g)} .ln.y{background:var(--y);color:#17223B} .ln.q{background:var(--q)} .ln.m{background:var(--ac)}
+/* tickets */
+.ticket{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--accent);border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:8px}
+.ticket.pending{border-left-color:var(--warn)}
+.kv{display:grid;grid-template-columns:minmax(110px,40%) minmax(0,1fr);gap:4px 12px;font-size:16px}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0;font-weight:700;overflow-wrap:anywhere}
+.code{font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.copy{min-height:32px;padding:4px 10px;font-size:13px;margin-left:6px;vertical-align:1px}
+.qr{display:flex;flex-wrap:wrap;gap:14px;align-items:center;background:#fff;color:#17223B;border-radius:12px;padding:14px;border:1px solid var(--line)}
+.qr img{width:240px;max-width:100%;height:auto;image-rendering:pixelated;background:#fff}
+.qr .cap{font-size:15px;min-width:0;flex:1 1 180px}
+/* checklist */
+.todo{display:grid;grid-template-columns:28px minmax(0,1fr);gap:12px;align-items:start;padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+.todo input{width:24px;height:24px;margin:2px 0 0;accent-color:var(--ok)}
+.todo.done .todo-title{text-decoration:line-through;color:var(--muted)}
+.todo-title{font-weight:700}
+table{width:100%;border-collapse:collapse;font-size:16px}
+td,th{padding:9px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.total td{font-weight:700}
+.contact{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}
+.contact:last-child{border-bottom:0}
+.num{font-variant-numeric:tabular-nums;font-weight:700;user-select:all}
+ul.tips{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px}
+@media (max-width:480px){
+  h1{font-size:28px}
+  .step{grid-template-columns:1fr;gap:6px}
+  .time{flex-direction:row;align-items:baseline;gap:8px;padding-top:0}
+  .kv{grid-template-columns:1fr}
+  .kv dt{margin-top:6px}
+}
+
+/* ===== App mode (phone-first) ===== */
+[hidden]{display:none!important}
+.locrow{display:flex;align-items:center;gap:14px}
+#arrow{width:64px;height:64px;flex:none;color:var(--accent);transition:transform .3s}
+.loc-big{font-family:var(--display);font-weight:800;font-size:26px;line-height:1.1}
+#alert-banner{font-weight:700;font-size:18px}
+
+.tools{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tool{display:flex;flex-direction:column;gap:4px;padding:14px;border-radius:14px;background:var(--card);border:1px solid var(--line);text-decoration:none;color:var(--fg)}
+.tool b{color:var(--accent);font-size:16px}
+.tool span{font-size:14px;color:var(--muted);line-height:1.35}
+@media (max-width:360px){.tools{grid-template-columns:1fr}}
+.alts{display:flex;flex-direction:column;gap:6px;margin-top:4px;padding-top:10px;border-top:1px dashed var(--line)}
+.alts-h{font-size:14px;font-weight:700;color:var(--muted)}
+.alts-r{display:flex;flex-wrap:wrap;gap:8px}
+.alts-r a:not(.btn){display:inline-flex;align-items:center;min-height:38px;padding:4px 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--fg);font-weight:700;font-size:14px;text-decoration:none}
+.latebtn{display:none}
+html.app .latebtn.pshow{display:inline-flex;position:fixed;right:14px;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:9;align-items:center;min-height:46px;padding:8px 18px;border-radius:999px;border:0;background:var(--bday);color:#fff;font-family:var(--body);font-weight:700;font-size:15px;box-shadow:0 6px 18px rgba(0,0,0,.25);cursor:pointer}
+.sheet{border:0;padding:0;width:100%;max-width:560px;margin:auto auto 0;border-radius:22px 22px 0 0;background:var(--card);color:var(--fg)}
+.sheet::backdrop{background:rgba(0,0,0,.55)}
+.sheet-in{display:flex;flex-direction:column;gap:12px;padding:22px 20px calc(22px + env(safe-area-inset-bottom,0px))}
+.late-status{font-size:18px;font-weight:700}
+.late-next p{font-size:15px;color:var(--muted);margin-bottom:6px}
+
+html.app .step{padding:14px 12px 14px 12px}
+.hero{position:relative;overflow:hidden;border-radius:22px;padding:20px 20px 64px;color:#fff;background:linear-gradient(140deg,#1F4FD1 0%,#5B3E9E 55%,#E4572E 120%);margin-top:14px}
+.hero h1{font-size:30px;color:#fff;margin-top:6px}
+.hero-top{display:flex;justify-content:space-between;font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;opacity:.9}
+.hero-count{display:flex;align-items:baseline;gap:10px;margin-top:10px}
+.hc-num{font-family:var(--display);font-weight:800;font-size:56px;line-height:1;color:#FFD34D}
+.hc-lbl{font-size:18px;font-weight:700}
+.hero-sub{margin-top:6px;font-size:17px;font-weight:700}
+.skyline{position:absolute;left:0;right:0;bottom:0;width:100%;height:54px;color:rgba(10,16,40,.55)}
+.next .next-sub{font-size:16px;opacity:.95}
+.next-btns{display:flex;gap:10px;margin-top:8px;flex-wrap:wrap}
+.nbtn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 18px;border-radius:999px;background:var(--card);color:var(--accent)!important;font-weight:700;text-decoration:none}
+.nbtn.light{background:rgba(255,255,255,.18);color:#fff!important;border:1px solid rgba(255,255,255,.6)}
+.legend{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.lg{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:700;padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:var(--card)}
+.lg::before{content:"";width:10px;height:10px;border-radius:50%}
+.lg.go::before{background:var(--accent)} .lg.eat::before{background:var(--ok)} .lg.do::before{background:var(--muted)} .lg.nw::before{background:var(--new)}
+.lg-help{flex-basis:100%;font-size:15px;color:var(--muted)}
+.howto{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 16px;font-size:16px}
+.howto summary{font-weight:700;cursor:pointer;min-height:28px}
+.howto p{margin-top:8px}
+.daybar{position:sticky;top:env(safe-area-inset-top,0px);z-index:6;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:10px 0;margin:0 -16px;padding-left:16px;padding-right:16px;background:var(--bg)}
+.daybar button{position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;gap:1px;min-height:58px;padding:8px 4px 10px;border-radius:14px;border:2px solid var(--line);background:var(--card);color:var(--fg);font-family:var(--body);cursor:pointer}
+.daybar button b{font-family:var(--display);font-size:18px}
+.daybar button span{font-size:12px;color:var(--muted);font-weight:700}
+.daybar button[aria-selected="true"]{background:var(--dc);border-color:var(--dc);color:#fff}
+.daybar button[aria-selected="true"] span{color:#fff;opacity:.9}
+.daybar .dp{position:absolute;left:0;bottom:0;height:4px;width:0;background:var(--ok);transition:width .3s}
+.daybar button[aria-selected="true"] .dp{background:#fff}
+html.app nav.tabs{display:none}
+html.app [data-panel]:not(.pshow){display:none!important}
+html.app .day:not(.dshow){display:none!important}
+html.app body{padding-bottom:calc(92px + env(safe-area-inset-bottom,0px))}
+.dayfun{font-family:var(--display);font-weight:800;font-size:16px;margin-top:4px;color:var(--accent)}
+.bdayday .dayhead{background:radial-gradient(circle at 12% 30%,rgba(228,87,46,.18) 0 6px,transparent 7px),radial-gradient(circle at 85% 25%,rgba(252,204,10,.35) 0 5px,transparent 6px),radial-gradient(circle at 70% 80%,rgba(31,79,209,.18) 0 5px,transparent 6px),radial-gradient(circle at 35% 85%,rgba(0,147,60,.2) 0 4px,transparent 5px),radial-gradient(circle at 55% 15%,rgba(176,18,122,.2) 0 4px,transparent 5px)}
+.bdayday .dayfun{color:var(--bday)}
+.dayhead{flex-wrap:wrap}
+.dprog{flex-basis:100%;display:flex;align-items:center;gap:10px;font-size:14px;font-weight:700;color:var(--muted)}
+.dprog .bar{flex:1;height:8px;border-radius:99px;background:var(--line);overflow:hidden}
+.dprog .bar i{display:block;height:100%;width:0;background:var(--ok);border-radius:99px;transition:width .3s}
+/* steps as tappable cards */
+html.app .step{grid-template-columns:40px minmax(0,1fr) 18px;grid-template-areas:"chk time chev" "chk what chev";gap:4px 10px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+html.app .step .chk{grid-area:chk;align-self:start;width:34px;height:34px;margin-top:2px;border-radius:50%;border:2.5px solid var(--line);background:var(--card);cursor:pointer;position:relative}
+html.app .step .chk::after{content:"";position:absolute;left:10px;top:5px;width:8px;height:15px;border:solid transparent;border-width:0 3px 3px 0;transform:rotate(45deg)}
+html.app .step.done .chk{background:var(--ok);border-color:var(--ok)}
+html.app .step.done .chk::after{border-color:#fff}
+html.app .step .time{grid-area:time;flex-direction:row;align-items:center;gap:8px;padding-top:0;font-size:15px}
+html.app .step .time small{font-size:12px}
+html.app .step .what{grid-area:what}
+html.app .step .chev{grid-area:chev;align-self:center;width:10px;height:10px;border-right:2.5px solid var(--muted);border-bottom:2.5px solid var(--muted);transform:rotate(45deg);transition:transform .2s;margin-top:-6px}
+html.app .step.open .chev{transform:rotate(-135deg);margin-top:4px}
+html.app .step .ic{display:inline-flex;width:26px;height:26px;border-radius:8px;align-items:center;justify-content:center;background:var(--accent-soft);color:var(--accent);flex:none}
+html.app .step.eat .ic{background:var(--ok-soft);color:var(--ok)}
+html.app .step.new .ic{background:var(--new-soft);color:var(--new)}
+html.app .step:not(.go):not(.eat):not(.new) .ic{background:var(--warn-soft);color:var(--warn)}
+html.app .step .ic svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+html.app .step .what .t{font-size:19px;line-height:1.25}
+html.app .step .sum{font-size:15px;color:var(--muted);line-height:1.35}
+html.app .step .more{display:none;flex-direction:column;gap:8px;margin-top:6px;cursor:auto}
+html.app .step.open .more{display:flex}
+html.app .step.open .sum,html.app .step.open .qdir{display:none}
+html.app .qdir{align-self:flex-start;margin-top:4px;display:inline-flex;align-items:center;min-height:36px;padding:4px 14px;border-radius:999px;background:var(--accent);color:var(--card);font-weight:700;font-size:14px;text-decoration:none}
+html.app .step.done{opacity:.55}
+html.app .step.done .t{text-decoration:line-through;text-decoration-thickness:2px}
+html.app .step.done .qdir{display:none}
+html.app .step.now{outline:3px solid var(--bday);outline-offset:-3px}
+html.app .step.now .sum::before{content:"NEXT · ";font-weight:700;color:var(--bday)}
+.flash{animation:flash 1.6s ease}
+@keyframes flash{0%,40%{box-shadow:0 0 0 4px var(--bday)}100%{box-shadow:0 0 0 0 transparent}}
+/* bottom nav */
+.appnav{display:none}
+html.app .appnav{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--card);border-top:1px solid var(--line);padding:6px 6px calc(8px + env(safe-area-inset-bottom,0px));box-shadow:0 -6px 20px rgba(0,0,0,.08)}
+.appnav button{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:54px;border:0;background:none;color:var(--muted);font-family:var(--body);font-size:12px;font-weight:700;border-radius:12px;cursor:pointer}
+.appnav button svg{width:24px;height:24px}
+.appnav button[aria-current="page"]{color:var(--accent);background:var(--accent-soft)}
+.appnav .badge{position:absolute;top:4px;right:calc(50% - 22px);min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--bday);color:#fff;font-style:normal;font-size:11px;display:flex;align-items:center;justify-content:center}
+.appnav button:focus-visible,.daybar button:focus-visible,.chk:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+/* QR */
+.qr-hint{font-size:14px;color:var(--muted);font-weight:700}
+.qrdlg{border:0;padding:0;border-radius:20px;max-width:min(94vw,520px);width:100%;background:#fff;color:#17223B}
+.qrdlg::backdrop{background:rgba(0,0,0,.75)}
+.qr-big{display:flex;flex-direction:column;align-items:center;gap:12px;padding:22px}
+.qr-big img{width:100%;max-width:420px;image-rendering:pixelated;background:#fff}
+.qr-big p{margin:0;text-align:center;font-weight:700;font-size:20px}
+.qr-big .qr-tip{font-weight:400;font-size:15px;color:#55607A}
+@media (prefers-reduced-motion:reduce){.flash{animation:none}.dprog .bar i,.daybar .dp,html.app .step .chev{transition:none}html{scroll-behavior:auto}}
+</style>
+
+<nav class="tabs" aria-label="Jump to">
+  <a href="#next">Next up</a><a href="#fri" data-day="2026-11-06">Fri</a><a href="#sat" data-day="2026-11-07">Sat</a><a href="#sun" data-day="2026-11-08">Sun</a><a href="#mon" data-day="2026-11-09">Mon</a><a href="#tobuy">To buy</a><a href="#tickets">Tickets</a><a href="#todo">To do</a><a href="#money">Money</a><a href="#phones">Phones</a>
+</nav>
+
+<div class="wrap">
+
+<header id="hero" class="hero">
+  <div class="hero-top"><span class="hero-kicker">Manan · Chaitali · Deeyan</span><span class="hero-dates">Nov 6–9</span></div>
+  <h1>NYC Birthday Trip</h1>
+  <div class="hero-count"><span class="hc-num" id="hc-num">–</span><span class="hc-lbl" id="hc-lbl">days to go</span></div>
+  <p class="hero-sub" id="hero-sub">Deeyan turns 7 in New York!</p>
+  <svg class="skyline" viewBox="0 0 400 70" preserveAspectRatio="none" aria-hidden="true"><path d="M0 70V48h18V36h14v12h10V22h16v26h8V40h12v30M80 70V30h10V14h4v16h10v40M104 70V44h22V28h18v42M144 70V8l6-8 6 8v62M156 70V38h20v32M176 70V24h12v-8h8v8h12v54M208 70V46h16V32h22v38M246 70V40h14V20h20v50M280 70V36h12V26h4V14h4v12h4v10h12v34M316 70V44h18V30h16v40M350 70V48h22V38h28v32" fill="currentColor"/></svg>
+</header>
+
+<section id="next" class="next" aria-live="polite">
+  <span class="label" id="next-label">Next up</span>
+  <span class="big" id="next-title">Trip starts Fri Nov 6</span>
+  <span id="next-sub" class="next-sub">Leave home at 4:30 PM for Midway.</span>
+  <div class="next-btns"><a href="#fri" id="next-link" class="nbtn light">Show me</a><a href="#" id="next-dir" class="nbtn" target="_blank" rel="noopener" hidden>Directions</a></div>
+</section>
+
+<section id="here" class="card stack" style="gap:10px">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><h3>Where am I?</h3><button type="button" class="btn solid" id="locbtn">Find me</button></div>
+  <p class="small muted" id="loc-status">Works offline. Tap Find me and the page uses your phone's GPS to tell you how far the next stop is and which way to walk.</p>
+  <div id="loc-out" hidden>
+    <div class="locrow"><svg id="arrow" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="none" stroke="currentColor" stroke-width="2" opacity=".35"/><path d="M20 5l8 22-8-5-8 5z" fill="currentColor"/></svg><div><div class="loc-big" id="loc-dist">–</div><div class="small muted" id="loc-sub"></div></div></div>
+    <div class="small" id="loc-near"></div>
+    <div class="btns"><a class="btn solid" id="loc-dir" href="#" target="_blank" rel="noopener">Directions (needs data)</a><a class="btn" id="loc-walk" href="#" target="_blank" rel="noopener">Walk</a><a class="btn" id="loc-uber" href="#" target="_blank" rel="noopener">Uber</a></div>
+    <p class="small muted">No signal? The arrow and distance still work. Walk toward the arrow and follow the step-by-step route in the plan.</p>
+  </div>
+</section>
+<section id="alerts" class="card stack" style="gap:10px">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><h3>Reminders on this phone</h3><button type="button" class="btn" id="alertbtn">Turn on</button></div>
+  <p class="small muted" id="alert-status">While this page is open (even in the background), it buzzes and pops a banner 10 minutes before every "leave" time and again when it's time to go. Your Calendar alerts from Oct 8 still work too, no login needed.</p>
+  <div class="note warn" id="alert-banner" hidden></div>
+</section>
+<div class="legend">
+  <span class="lg go">Travel</span><span class="lg eat">Eat</span><span class="lg do">Do</span><span class="lg nw">New</span>
+  <span class="lg-help">Tap a stop to open it. Tap the circle when it's done.</span>
+</div>
+<div class="tools">
+  <div class="tool"><b>Phone alerts are on</b><span>Manan's calendar buzzes 10 min before every "leave" time; to-dos are in Reminders. Chaitali: open the NYC-Birthday-Trip.ics file Manan sends you.</span></div>
+  <a class="tool" href="https://forecast.weather.gov/MapClick.php?lat=40.7128&amp;lon=-74.006" target="_blank" rel="noopener"><b>NYC weather</b><span>Live forecast. Pack layers for the bridge and ferry.</span></a>
+</div>
+<details class="howto">
+  <summary>How the subway works</summary>
+  <p>Tap a credit card or phone at the gate, <b>one card per adult</b> ($3 a ride, capped at $35 per card for the week). Deeyan rides free if under 44 inches. The colored circles are the train lines on the signs. Check the sign says <b>"Manhattan"</b> or <b>"Brooklyn"</b> for your direction.</p>
+  <p><span class="chg">New time</span> means a time moved when the Transit Museum, Nintendo and LEGO were added. "Directions from here" opens Google Maps from where you are standing.</p>
+</details>
+
+<div class="daybar" id="daybar" role="tablist" aria-label="Trip days">
+  <button type="button" role="tab" data-day="fri" style="--dc:var(--ac)"><b>Fri</b><span>Nov 6</span><i class="dp"></i></button>
+  <button type="button" role="tab" data-day="sat" style="--dc:var(--f)"><b>Sat</b><span>Birthday</span><i class="dp"></i></button>
+  <button type="button" role="tab" data-day="sun" style="--dc:var(--g)"><b>Sun</b><span>Nov 8</span><i class="dp"></i></button>
+  <button type="button" role="tab" data-day="mon" style="--dc:var(--r)"><b>Mon</b><span>Nov 9</span><i class="dp"></i></button>
+</div>
+
+<section class="day" id="fri" aria-labelledby="fri-h">
+  <div class="dayhead"><span class="bullet" style="background:var(--ac)">F</span><div><h2 id="fri-h">Friday, Nov 6</h2><p class="muted small">Fly to New York · times before landing are Chicago time</p><p class="dayfun">Up, up and away!</p></div></div>
+
+  <div class="step" data-at="2026-11-06T15:30:00-06:00"><div class="time">3:30 PM</div><div class="what"><span class="t">Final check before leaving</span>
+    <ol class="route">
+      <li><span>Southwest boarding passes on both phones (from Thursday's check-in).</span></li>
+      <li><span>MSG tickets added to your phone wallet from the <b>Ticketmaster app</b>.</span></li>
+      <li><span>Warm jackets, hats, gloves, swimsuits, phone chargers. Credit card or phone set up for tap-to-pay for <b>each adult</b>.</span></li>
+    </ol></div></div>
+  <div class="step eat" data-at="2026-11-06T16:00:00-06:00"><div class="time">4:00 PM<small>Eat</small></div><div class="what"><span class="t">Early dinner at home</span><span class="how">Pack vegetarian snacks for the airport and plane. You land late.</span></div></div>
+
+  <div class="step go" data-at="2026-11-06T16:30:00-06:00"><div class="time">4:30 PM<small>Leave home</small></div><div class="what"><span class="t">Home → Midway Airport (MDW)</span>
+    <span class="how">Drive about 45–60 min. Be at the airport by <b>5:45 PM</b>.</span>
+    <div class="btns"><a class="btn" href="https://www.google.com/maps/dir/?api=1&amp;destination=Chicago+Midway+International+Airport&amp;travelmode=driving" target="_blank" rel="noopener">Directions from here</a></div></div></div>
+  <div class="step" data-at="2026-11-06T17:45:00-06:00"><div class="time">5:45 PM</div><div class="what"><span class="t">Bags and security at Midway</span><span class="how">Southwest counter, then security. <a class="chip" href="#t-flight">Flight · CMGWXE</a></span></div></div>
+  <div class="step" data-at="2026-11-06T19:15:00-06:00"><div class="time">7:15 PM</div><div class="what"><span class="t">Flight WN 2958 takes off</span><span class="how">2 hr 5 min. Lands <b>10:20 PM New York time</b> at LaGuardia <b>Terminal B</b>.</span></div></div>
+
+  <div class="step go" data-at="2026-11-06T22:40:00-05:00"><div class="time">10:40 PM<small>Leave airport</small></div><div class="what"><span class="t">LaGuardia → Hotel (free bus + subway)</span>
+    <ol class="route">
+      <li><span>Get your bags. Follow signs for <b>"Ground Transportation / Public Transit"</b> to the <span class="ln q">Q70</span> <b>LaGuardia Link</b> bus stop. <b>The bus is free</b>, just get on.</span></li>
+      <li><span><b>Ride</b> about 15 min. <b>Get off</b> at <b>Jackson Hts–Roosevelt Av</b> (the bus stops at the station).</span></li>
+      <li><span><b>Take</b> the <span class="ln f">F</span> train toward <b>Coney Island / Brooklyn</b>, about 45 min. Late at night trains come every 15–20 min.</span></li>
+      <li><span><b>Get off</b> at <b>Jay St–MetroTech</b>. Walk 10 min to <b>300 Schermerhorn St</b>.</span></li>
+    </ol>
+    <span class="arrive">Arrive about 12:15 AM · $3 per adult</span>
+    <span class="backup">Backup if he's asleep or it's pouring: taxi line outside Terminal B, about 30 min, $55–$75.</span>
+    <div class="btns"><a class="btn" href="https://www.google.com/maps/dir/?api=1&amp;destination=Holiday+Inn+Brooklyn+Downtown+300+Schermerhorn+St+Brooklyn&amp;travelmode=transit" target="_blank" rel="noopener">Directions from here</a><a class="btn" href="https://www.mta.info/guides/airports/laguardia" target="_blank" rel="noopener">Q70 bus info</a></div></div></div>
+  <div class="step" data-at="2026-11-07T00:15:00-05:00"><div class="time">12:15 AM</div><div class="what"><span class="t">Check in and sleep</span><span class="how">Front desk: name <b>Manan Shah</b>, confirmation <b>1060413358</b>. <a class="chip" href="#t-hotel">Hotel</a></span></div></div>
+</section>
+
+<!-- ================= SATURDAY ================= -->
+<section class="day bdayday" id="sat" aria-labelledby="sat-h">
+  <div class="dayhead"><span class="bullet" style="background:var(--f)">S</span><div><h2 id="sat-h">Saturday, Nov 7 <span class="bday">Birthday</span></h2><p class="dayfun">Happy 7th birthday, Deeyan!</p><p class="muted small">Transit Museum <span class="newtag">New</span>, carousel, Brooklyn Bridge, 9/11 Memorial, cake, dinner on the 101st floor</p></div></div>
+
+  <div class="step eat" data-at="2026-11-07T07:30:00-05:00"><div class="time">7:30 AM<small>Eat</small></div><div class="what"><span class="t">Breakfast at the hotel restaurant <span class="chg">New time</span></span><span class="how">Kids eat free. Ask which items have no egg (pancakes, oatmeal, toast, fruit).</span></div></div>
+  <div class="step" data-at="2026-11-07T08:00:00-05:00"><div class="time">8:00 AM</div><div class="what"><span class="t">Birthday morning swim <span class="chg">New time</span></span><span class="how">Pool opens 8 AM on weekends. Out by <b>9:15</b> to dry off and dress. While he swims: <b>order the ice cream cake</b> for <b>4:00 PM</b> delivery (see To do).</span></div></div>
+
+  <div class="step go new" data-at="2026-11-07T09:45:00-05:00"><div class="time">9:45 AM<small>Leave hotel</small></div><div class="what"><span class="t">Hotel → New York Transit Museum <span class="newtag">New</span></span>
+    <ol class="route">
+      <li><span><b>Walk</b> about 12 min west on <b>Schermerhorn St</b> (toward Borough Hall) to <b>Boerum Pl</b>.</span></li>
+      <li><span>The entrance is a <b>subway staircase</b> on the corner of <b>Boerum Pl &amp; Schermerhorn St</b>. The museum is inside an old 1936 station, down the stairs.</span></li>
+    </ol>
+    <span class="arrive">Arrive about 9:57 AM · opens 10:00 · no train needed</span>
+    <span class="backup">Show the 3 barcodes on the ticket card (tap to go full screen). No bag check and no elevator, so carry only small bags.</span>
+    <div class="btns"><a class="btn" href="https://www.google.com/maps/dir/?api=1&amp;destination=New+York+Transit+Museum+99+Schermerhorn+St+Brooklyn&amp;travelmode=walking" target="_blank" rel="noopener">Walking from here</a><a class="chip" href="#t-transit">Open barcodes</a></div></div></div>
+  <div class="step new" data-at="2026-11-07T10:00:00-05:00"><div class="time">10:00 AM</div><div class="what"><span class="t">Transit Museum: climb aboard old trains <span class="newtag">New</span></span><span class="how">Downstairs on the old platform: a long row of real vintage subway cars, some over 100 years old. He can walk through them, sit on the old seats and hold the straps. Upstairs: a full-size bus front he can sit in. About 1 hour.</span></div></div>
+
+  <div class="step go" data-at="2026-11-07T11:00:00-05:00"><div class="time">11:00 AM<small>Leave</small></div><div class="what"><span class="t">Transit Museum → Jane's Carousel (DUMBO) <span class="chg">New time · new start</span></span>
+    <ol class="route">
+      <li class="new"><span><b>Walk</b> 4 min to <b>Jay St–MetroTech</b> station (Jay St &amp; Willoughby St).</span></li>
+      <li class="new"><span><b>Take</b> the <span class="ln ac">A</span> or <span class="ln ac">C</span> train <b>toward Manhattan</b>, <b>1 stop</b>.</span></li>
+      <li><span><b>Get off</b> at <b>High St</b>.</span></li>
+      <li><span><b>Walk</b> 10 min downhill to the river (signs for Brooklyn Bridge Park). The carousel is in a glass box by the water.</span></li>
+    </ol>
+    <span class="arrive">Arrive about 11:20 AM · open from 11:00 · $4 a ride per person</span>
+    <div class="btns"><a class="btn" href="https://www.google.com/maps/dir/?api=1&amp;destination=Jane%27s+Carousel+Brooklyn&amp;travelmode=transit" target="_blank" rel="noopener">Directions from here</a><a class="btn" href="https://janescarousel.com/hours/" target="_blank" rel="noopener">Hours</a></div></div></div>
+  <div class="step" data-at="2026-11-07T11:20:00-05:00"><div class="time">11:20 AM</div><div class="what"><span class="t">Carousel + Brooklyn Bridge Park <span class="chg">New time</span></span><span class="how">Photo spot: <b>Washington St &amp; Water St</b> with the Manhattan Bridge behind you.</span></div></div>
+
+  <div class="step go" data-at="2026-11-07T12:05:00-05:00"><div class="time">12:05 PM<small>Start walking</small></div><div class="what"><span class="t">Walk across the Brooklyn Bridge → Eataly <span class="chg">New time</span></span>
+    <ol class="route">
+      <li><span><b>Walk</b> about 8 min to the bridge stairs on <b>Washington St</b> (just past Prospect St, under the bridge). Signs say <b>"Brooklyn Bridge Promenade."</b></span></li>
+      <li><span><b>Walk</b> across the bridge, about 40 min at kid speed.</span></li>
+      <li><span><b>Come off</b> at <b>City Hall Park</b> in Manhattan.</span></li>
+      <li><span><b>Walk</b> 12 min to <b>Eataly, 101 Liberty St</b> (inside 4 World Trade Center, 3rd floor).</span></li>
+    </ol>
+    <span class="arrive">Arrive about 1:10 PM</span>
+    <span class="backup">Too cold? Walk halfway, come back, take the A/C from High St 2 stops to Fulton St (World Trade Center).</span>
+    <div class="btns"><a class="btn" href="https://www.google.com/maps/dir/?api=1&amp;destination=Eataly+NYC+Downtown+101+Liberty+St&amp;waypoints=Brooklyn+Bridge&amp;travelmode=walking" target="_blank" rel="noopener">Walking route from here</a></div></div></div>
+  <div class="step eat" data-at="2026-11-07T13:10:00-05:00"><div class="time">1:10 PM<small>Eat</small></div><div class="what"><span class="t">Lunch at Eataly Downtown <span class="chg">New time</span></span><span class="how">Pizza, pasta, gelato. Lots of vegetarian choices; ask about egg in fresh pasta.</span>
+    <div class="btns"><a class="btn" href="https://www.google.com/maps/search/?api=1&amp;query=Eataly+NYC+Downtown+101+Liberty+St" target="_blank" rel="noopener">Map</a></div></div></div>
+  <div class="step" data-at="2026-11-07T14:10:00-05:00"><div class="time">2:10 PM</div><div class="what"><span class="t">9/11 Memorial pools <span class="chg">New time</span></span><span class="how">Free, across the street from Eataly. Quiet voices here.</span>
+    <div class="btns"><a class="btn" href="https://www.google.com/maps/dir/?api=1&amp;destination=9%2F11+Memorial+Pools&amp;travelmode=walking" target="_blank" rel="noopener">Walking from here</a></div></div></div>
+  <div class="step" data-at="2026-11-07T14:35:00-05:00"><div class="time">2:35 PM</div><div class="what"><span class="t">Quick look inside the Oculus <span class="chg">New time</span></span><span class="how">The big white "bird" building next to the pools. 10 minutes. Skip it if he's tired.</span></div></div>
+
+  <div class="step go" data-at="2026-11-07T14:50:00-05:00"><div class="time">2:50 PM<small>Leave</small></div><div class="what"><span class="t">World Trade Center → Hotel (rest break) <span class="chg">New time</span></span>
+    <ol class="route">
+      <li><span><b>Walk</b> 6 min to <b>Park Place</b> station (Church St &amp; Park Place).</span></li>
+      <li><span><b>Take</b> the <span class="ln r">2</span> or <span class="ln r">3</span> train <b>toward Brooklyn</b>, 6 stops (about 15 min).</span></li>
+      <li><span><b>Get off</b> at <b>Nevins St</b>. Walk 4 min to the hotel.</span></li>
+    </ol>
+    <span class="arrive">Arrive about 3:20 PM</span>
+    <div class="btns"><a class="btn" href="https://www.google.com/maps/dir/?api=1&amp;destination=Holiday+Inn+Brooklyn+Downtown+300+Schermerhorn+St+Brooklyn&amp;travelmode=transit" target="_blank" rel="noopener">Directions from here</a></div></div></div>
+  <div class="step" data-at="2026-11-07T16:00:00-05:00"><div class="time">4:00 PM</div><div class="what"><span class="t">Ice cream cake in the room! <span class="bday">Birthday</span> <span class="chg">New time</span></span><span class="how">Pick up the delivery at the front desk. Then rest and dress for dinner (warm layers for the tower). Leave at 5:40.</span></div></div>
+
+  <div class="step go" data-at="2026-11-07T17:40:00-05:00"><div class="time">5:40 PM<small>Leave hotel</small></div><div class="what"><span class="t">Hotel → One World Observatory</span>
+    <ol class="route">
+      <li><span><b>Walk</b> 4 min to <b>Nevins St</b> station.</span></li>
+      <li><span><b>Take</b> the <span class="ln r">2</span> or <span class="ln r">3</span> train <b>toward Manhattan</b>, 6 stops (about 15 min).</span></li>
+      <li><span><b>Get off</b> at <b>Park Place</b>. Walk 6 min to <b>West St &amp; Vesey St</b>, the entrance on the west side of the tallest tower.</span></li>
+      <li><span>Go to the <b>Guest Services desk (lower lobby)</b> and pick up your <b>3 observatory tickets</b>. They're included in the dinner package.</span></li>
+    </ol>
+    <span class="arrive">Arrive about 6:10 PM</span>
+    <div class="btns"><a class="btn" href="https://www.google.com/maps/dir/?api=1&amp;destination=One+World+Observatory+117+West+St+New+York&amp;travelmode=transit" target="_blank" rel="noopener">Directions from here</a></div></div></div>
+  <div class="step" data-at="2026-11-07T18:15:00-05:00"><div class="time">6:15 PM</div><div class="what"><span class="t">One World Observatory at night <span class="bday">Birthday</span></span><span class="how">102 floors in under a minute. Find the Brooklyn Bridge you walked this morning.</span></div></div>
+  <div class="step eat" data-at="2026-11-07T19:00:00-05:00"><div class="time">7:00 PM<small>Eat</small></div><div class="what"><span class="t">Birthday dinner at ONE Dine, 101st floor <span class="bday">Birthday</span></span><span class="how">Dining Experience with a View, party of 3. <b>Tip already paid, don't tip again.</b> Remind the server: strict vegetarian (no meat, fish or egg), and it's his birthday. <a class="chip" href="#t-dine">Reservation</a></span></div></div>
+
+  <div class="step go" data-at="2026-11-07T20:30:00-05:00"><div class="time">8:30 PM<small>Leave</small></div><div class="what"><span class="t">One World Trade Center → Hotel</span>
+    <ol class="route">
+      <li><span><b>Walk</b> 6 min to <b>Park Place</b> station.</span></li>
+      <li><span><b>Take</b> the <span class="ln r">2</span> or <span class="ln r">3</span> train <b>toward Brooklyn</b>, 6 stops.</span></li>
+      <li><span><b>Get off</b> at <b>Nevins St</b>. Walk 4 min.</span></li>
+    </ol>
+    <span class="arrive">Arrive about 9:00 PM · bedtime</span>
+    <span class="backup">Backup: taxi from West St, about 20 min, $20–$30.</span>
+    <div class="btns"><a class="btn" href="https://www.google.com/maps/dir/?api=1&amp;destination=Holiday+Inn+Brooklyn+Downtown+300+Schermerhorn+St+Brooklyn&amp;travelmode=transit" target="_blank" rel="noopener">Directions from here</a></div></div></div>
+</section>
+
+<!-- ================= SUNDAY ================= -->
+<section class="day" id="sun" aria-labelledby="sun-h">
+  <div class="dayhead"><span class="bullet" style="background:var(--g)">S</span><div><h2 id="sun-h">Sunday, Nov 8</h2><p class="dayfun">Boats, bright lights and LEGO</p><p class="muted small">Statue of Liberty, Madison Square Garden, Times Square, Nintendo &amp; LEGO <span class="newtag">New</span></p></div></div>
+
+  <div class="step eat" data-at="2026-11-08T08:00:00-05:00"><div class="time">8:00 AM<small>Eat</small></div><div class="what"><span class="t">Breakfast at the hotel</span><span class="how">Pack snacks: lunch is late today (about 3:25 PM).</span></div></div>
+
+  <div class="step go" data-at="2026-11-08T08:45:00-05:00"><div class="time">8:45 AM<small>Leave hotel</small></div><div class="what"><span class="t">Hotel → Statue of Liberty ferry (Castle Clinton)</span>
+    <ol class="route">
+      <li><span><b>Walk</b> 4 min to <b>Nevins St</b> station.</span></li>
+      <li><span><b>Take</b> the <span class="ln g">4</span> or <span class="ln g">5</span> train <b>toward Manhattan</b>, 2 stops (about 8 min).</span></li>
+      <li><span><b>Get off</b> at <b>Bowling Green</b>.</span></li>
+      <li><span><b>Walk</b> 5 min into Battery Park to <b>Castle Clinton</b> (round stone fort). Security and the ferry are right behind it.</span></li>
+    </ol>
+    <span class="arrive">Arrive about 9:05 AM · boarding 9:30 · ferry 10:00</span>
+    <div class="btns"><a class="btn" href="https://www.google.com/maps/dir/?api=1&amp;destination=Castle+Clinton+National+Monument&amp;travelmode=transit" target="_blank" rel="noopener">Directions from here</a></div></div></div>
+  <div class="step" data-at="2026-11-08T09:30:00-05:00"><div class="time">9:30 AM</div><div class="what"><span class="t">Boarding and security</span><span class="how">Airport-style security. Show the <b>QR code</b> on the Statue ticket card (Booking ID 86447401, 2 adults + 1 child). <a class="chip" href="#t-statue">Open QR code</a></span></div></div>
+  <div class="step" data-at="2026-11-08T10:00:00-05:00"><div class="time">10:00 AM</div><div class="what"><span class="t">Ferry to Liberty Island (15 min)</span><span class="how">Pedestal Reserve lets you go up inside the statue's base (second security check, lockers for bags). Snack at the island café. <b>Be back at the ferry dock by 11:50.</b></span></div></div>
+  <div class="step go" data-at="2026-11-08T11:50:00-05:00"><div class="time">11:50 AM<small>Ferry back</small></div><div class="what"><span class="t">Liberty Island → Battery Park</span>
+    <span class="how">The ferry stops at Ellis Island first. <b>Stay on the boat</b> and ride to Battery Park (about 30 min).</span>
+    <span class="arrive">Back about 12:25 PM</span></div></div>
+  <div class="step" data-at="2026-11-08T12:25:00-05:00"><div class="time">12:25 PM</div><div class="what"><span class="t">SeaGlass Carousel (glowing fish, optional)</span><span class="how">5 min walk in Battery Park, $6 a ride. Skip if running late.</span>
+    <div class="btns"><a class="btn" href="https://www.google.com/maps/dir/?api=1&amp;destination=SeaGlass+Carousel+Battery+Park&amp;travelmode=walking" target="_blank" rel="noopener">Walking from here</a></div></div></div>
+
+  <div class="step go" data-at="2026-11-08T12:50:00-05:00"><div class="time">12:50 PM<small>Leave</small></div><div class="what"><span class="t">Battery Park → Madison Square Garden</span>
+    <ol class="route">
+      <li><span><b>Walk</b> 5 min to <b>South Ferry</b> station (next to the big orange Staten Island Ferry building).</span></li>
+      <li><span><b>Take</b> the <span class="ln r">1</span> train <b>uptown</b>. It starts here, so you'll get seats. Direct, about 22 min.</span></li>
+      <li><span><b>Get off</b> at <b>34 St–Penn Station</b>. Follow signs to <b>7th Ave &amp; 33rd St</b>. MSG is right above you.</span></li>
+    </ol>
+    <span class="arrive">Arrive about 1:20 PM · check in by 1:45</span>
+    <div class="btns"><a class="btn" href="https://www.google.com/maps/dir/?api=1&amp;destination=Madison+Square+Garden&amp;travelmode=transit" target="_blank" rel="noopener">Directions from here</a></div></div></div>
+  <div class="step" data-at="2026-11-08T14:00:00-05:00"><div class="time">2:00 PM</div><div class="what"><span class="t">Madison Square Garden tour (about 1 hour)</span><span class="how">Entrance on 7th Ave between 31st and 33rd St. Tickets are in the <b>Ticketmaster app → My Events</b>. <a class="chip" href="#t-msg">Ticket</a></span></div></div>
+
+  <div class="step go" data-at="2026-11-08T15:05:00-05:00"><div class="time">3:05 PM<small>Walk</small></div><div class="what"><span class="t">MSG → Saravanaa Bhavan</span>
+    <ol class="route">
+      <li><span><b>Walk</b> about 20 min east on 31st St to Lexington Ave, then down to <b>81 Lexington Ave (at 26th St)</b>.</span></li>
+    </ol>
+    <span class="arrive">Arrive about 3:25 PM</span>
+    <div class="btns"><a class="btn" href="https://www.google.com/maps/dir/?api=1&amp;destination=Saravanaa+Bhavan+81+Lexington+Ave+New+York&amp;travelmode=walking" target="_blank" rel="noopener">Walking from here</a></div></div></div>
+  <div class="step eat" data-at="2026-11-08T15:25:00-05:00"><div class="time">3:25 PM<small>Eat</small></div><div class="what"><span class="t">Late lunch at Saravanaa Bhavan</span><span class="how">Pure vegetarian South Indian: dosas, idli, filter coffee. Open all afternoon.</span></div></div>
+
+  <div class="step go" data-at="2026-11-08T16:25:00-05:00"><div class="time">4:25 PM<small>Leave</small></div><div class="what"><span class="t">Saravanaa Bhavan → Times Square</span>
+    <ol class="route">
+      <li><span><b>Walk</b> 8 min west on 28th St to the <b>28 St</b> station at <b>Broadway</b>.</span></li>
+      <li><span><b>Take</b> the <span class="ln y">R</span> or <span class="ln y">W</span> train <b>uptown</b>, 2 stops.</span></li>
+      <li><span><b>Get off</b> at <b>Times Sq–42 St</b>.</span></li>
+    </ol>
+    <span class="arrive">Arrive about 4:45 PM, just as the lights pop</span>
+    <div class="btns"><a class="btn" href="https://www.google.com/maps/dir/?api=1&amp;destination=Times+Square+New+York&amp;travelmode=transit" target="_blank" rel="noopener">Directions from here</a></div></div></div>
+  <div class="step" data-at="2026-11-08T16:45:00-05:00"><div class="time">4:45 PM</div><div class="what"><span class="t">Times Square walk</span>
+    <ol class="route">
+      <li><span><b>Times Square</b> lights: Broadway &amp; 42nd–47th St.</span></li>
+      <li><span><b>M&amp;M's store</b>: Broadway &amp; 48th St.</span></li>
+      <li><span><b>FAO Schwarz toy store</b>: 30 Rockefeller Plaza (49th St), 5 min walk east. Find the giant floor piano.</span></li>
+      <li class="new"><span><b>Nintendo NY</b> <span class="newtag">New</span>: 10 Rockefeller Plaza (48th St side), 2 min from FAO. Free, play the newest games. Open until 7 PM. <a class="chip" href="#t-nintendo">Info</a></span></li>
+      <li class="new"><span><b>LEGO Store</b> <span class="newtag">New</span>: 636 Fifth Ave (at 51st St), 3 min away. Free, big LEGO models and a Build a Minifigure station. Open until 8 PM. <a class="chip" href="#t-lego">Info</a></span></li>
+    </ol>
+    <span class="backup">Running low on energy? Skip one of the stores. Dinner moves to 6:35.</span>
+    <div class="btns"><a class="btn" href="https://www.google.com/maps/dir/?api=1&amp;destination=FAO+Schwarz+30+Rockefeller+Plaza&amp;travelmode=walking" target="_blank" rel="noopener">FAO Schwarz from here</a><a class="btn" href="https://www.google.com/maps/dir/?api=1&amp;destination=Nintendo+NY+10+Rockefeller+Plaza&amp;travelmode=walking" target="_blank" rel="noopener">Nintendo NY from here</a><a class="btn" href="https://www.google.com/maps/dir/?api=1&amp;destination=LEGO+Store+636+Fifth+Ave+New+York&amp;travelmode=walking" target="_blank" rel="noopener">LEGO Store from here</a></div></div></div>
+
+  <div class="step go" data-at="2026-11-08T18:25:00-05:00"><div class="time">6:25 PM<small>Walk</small></div><div class="what"><span class="t">LEGO Store → Ellen's Stardust Diner <span class="chg">New time</span></span>
+    <span class="how"><b>Walk</b> 10 min west on 51st St to <b>1650 Broadway (at 51st St)</b>. No reservations, so expect a short line.</span>
+    <span class="arrive">Arrive about 6:35 PM</span>
+    <div class="btns"><a class="btn" href="https://www.google.com/maps/dir/?api=1&amp;destination=Ellen%27s+Stardust+Diner+1650+Broadway&amp;travelmode=walking" target="_blank" rel="noopener">Walking from here</a></div></div></div>
+  <div class="step eat" data-at="2026-11-08T18:35:00-05:00"><div class="time">6:35 PM<small>Eat</small></div><div class="what"><span class="t">Dinner at Ellen's Stardust Diner <span class="chg">New time</span></span><span class="how">The waiters sing! Lunch was late, so share plates or just milkshakes and dessert. Grilled cheese, pancakes, veggie burger. Say "vegetarian" when you order.</span></div></div>
+
+  <div class="step go" data-at="2026-11-08T19:45:00-05:00"><div class="time">7:45 PM<small>Leave</small></div><div class="what"><span class="t">Ellen's → Hotel <span class="chg">New time</span></span>
+    <ol class="route">
+      <li><span><b>Walk</b> 10 min down Broadway to <b>Times Sq–42 St</b> station.</span></li>
+      <li><span><b>Take</b> the <span class="ln r">2</span> or <span class="ln r">3</span> train <b>toward Brooklyn</b>. Direct, about 30 min.</span></li>
+      <li><span><b>Get off</b> at <b>Nevins St</b>. Walk 4 min.</span></li>
+    </ol>
+    <span class="arrive">Arrive about 8:30 PM · pack the bags tonight</span>
+    <div class="btns"><a class="btn" href="https://www.google.com/maps/dir/?api=1&amp;destination=Holiday+Inn+Brooklyn+Downtown+300+Schermerhorn+St+Brooklyn&amp;travelmode=transit" target="_blank" rel="noopener">Directions from here</a></div></div></div>
+</section>
+
+<!-- ================= MONDAY ================= -->
+<section class="day" id="mon" aria-labelledby="mon-h">
+  <div class="dayhead"><span class="bullet" style="background:var(--r)">M</span><div><h2 id="mon-h">Monday, Nov 9</h2><p class="dayfun">Dinosaurs, then home</p><p class="muted small">Natural History Museum, then straight to the airport with bags</p></div></div>
+
+  <div class="step" data-at="2026-11-09T07:00:00-05:00"><div class="time">7:00 AM</div><div class="what"><span class="t">Last swim</span><span class="how">Pool open 7 AM–12 PM on weekdays.</span></div></div>
+  <div class="step eat" data-at="2026-11-09T07:45:00-05:00"><div class="time">7:45 AM<small>Eat</small></div><div class="what"><span class="t">Breakfast at the hotel</span></div></div>
+  <div class="step" data-at="2026-11-09T08:50:00-05:00"><div class="time">8:50 AM</div><div class="what"><span class="t">Check out and take the bags with you</span><span class="how">Return the key cards. You won't come back to the hotel.</span></div></div>
+
+  <div class="step go" data-at="2026-11-09T09:00:00-05:00"><div class="time">9:00 AM<small>Leave hotel</small></div><div class="what"><span class="t">Hotel → Museum (with bags)</span>
+    <ol class="route">
+      <li><span><b>Walk</b> 3 min to <b>Hoyt–Schermerhorn</b> station.</span></li>
+      <li><span><b>Take</b> the <span class="ln ac">C</span> train <b>uptown / toward Manhattan</b>. <b>Not the A</b>: the A skips the museum stop.</span></li>
+      <li><span><b>Get off</b> at <b>81 St–Museum of Natural History</b> (about 45 min).</span></li>
+      <li><span><b>Walk</b> about 8 min to <b>LuggageHero American Museum</b> (address in the app) and drop the 2 bags.</span></li>
+      <li><span><b>Walk</b> back to the <b>Rose Center entrance on 81st St</b> (between Central Park West and Columbus Ave). Usually the shortest line.</span></li>
+    </ol>
+    <span class="arrive">In the museum about 10:00 AM</span>
+    <div class="btns"><a class="btn" href="https://www.google.com/maps/dir/?api=1&amp;destination=American+Museum+of+Natural+History+Rose+Center+81st+Street&amp;travelmode=transit" target="_blank" rel="noopener">Directions from here</a><a class="btn" href="https://app.luggagehero.com/" target="_blank" rel="noopener">LuggageHero</a></div></div></div>
+  <div class="step" data-at="2026-11-09T10:00:00-05:00"><div class="time">10:00 AM</div><div class="what"><span class="t">Museum <a class="chip" href="#t-amnh">Open QR tickets</a></span>
+    <ol class="route">
+      <li><span><b>10:00</b> Dinosaur fossil halls (T. rex), <b>Floor 4</b></span></li>
+      <li><span><b>10:30</b> Invisible Worlds, <b>Floor 3, Gilder Center</b></span></li>
+      <li><span><b>11:30</b> Butterfly Vivarium, <b>Floor 2, Gilder Center</b></span></li>
+      <li><span><b>12:30</b> Encounters in the Milky Way, <b>Floor 1, Planetarium</b></span></li>
+    </ol></div></div>
+  <div class="step eat" data-at="2026-11-09T13:00:00-05:00"><div class="time">1:00 PM<small>Eat</small></div><div class="what"><span class="t">Lunch at the Food Court (lower level)</span><span class="how">Open 10:45–4:45, vegetarian options daily. Ask about meat stock in soups. Backup: Cafe on 1 (veggie panini).</span></div></div>
+  <div class="step" data-at="2026-11-09T13:30:00-05:00"><div class="time">1:30 PM</div><div class="what"><span class="t">Impact: The End of the Age of Dinosaurs</span><span class="how"><b>Floor 4, Gallery 4.</b> Ends about 2:00.</span></div></div>
+
+  <div class="step go" data-at="2026-11-09T14:00:00-05:00"><div class="time">2:00 PM<small>Leave</small></div><div class="what"><span class="t">Museum → LaGuardia (with bags)</span>
+    <ol class="route">
+      <li><span><b>Walk</b> 8 min to LuggageHero and pick up the bags.</span></li>
+      <li><span><b>Walk</b> to <b>81 St–Museum of Natural History</b> station. <b>Take</b> the <span class="ln f">B</span> or <span class="ln ac">C</span> train <b>uptown</b>, 6 stops (about 12 min).</span></li>
+      <li><span><b>Get off</b> at <b>125 St</b>. Go up to <b>125th St &amp; St Nicholas Ave</b>.</span></li>
+      <li><span><b>Take</b> the <span class="ln m">M60</span> <b>Select Bus</b> toward <b>LaGuardia Airport</b> (tap your card on the reader as you board). About 30 min.</span></li>
+      <li><span><b>Get off</b> at <b>Terminal B</b> (Southwest).</span></li>
+    </ol>
+    <span class="arrive">At LaGuardia about 3:15 PM · 2 hr 40 min before the flight</span>
+    <span class="backup">Backup: Uber from the luggage shop, 30–40 min, $45–$65.</span>
+    <div class="btns"><a class="btn" href="https://www.google.com/maps/dir/?api=1&amp;destination=LaGuardia+Airport+Terminal+B&amp;travelmode=transit" target="_blank" rel="noopener">Directions from here</a></div></div></div>
+  <div class="step" data-at="2026-11-09T15:15:00-05:00"><div class="time">3:15 PM</div><div class="what"><span class="t">Southwest bag drop and security, Terminal B</span><span class="how">Grab snacks after security. <a class="chip" href="#t-flight">Flight · CMGWXE</a></span></div></div>
+  <div class="step" data-at="2026-11-09T17:55:00-05:00"><div class="time">5:55 PM</div><div class="what"><span class="t">Flight WN 2578 home</span><span class="how">Lands at Midway <b>7:30 PM Chicago time</b>. Happy birthday trip, Deeyan!</span></div></div>
+</section>
+
+<!-- ================= TICKETS ================= -->
+<section id="tickets" class="stack" aria-labelledby="tickets-h">
+  <h2 id="tickets-h">Tickets &amp; reservations</h2>
+  <div class="card stack" id="tobuy" style="border-left:6px solid var(--warn)">
+    <h3>Still to buy or book</h3>
+    <p class="small muted">Everything you haven't paid for yet, with where to get it. Free stops are listed too, so you know nothing needs booking.</p>
+    <div>
+      <div class="buy"><div><div class="b-t">LuggageHero, 2 bags</div><div class="b-s">Mon Nov 9, 9:50 AM–2:15 PM · about $14–$19 · book in the app or online</div></div><a class="btn solid" href="https://app.luggagehero.com/" target="_blank" rel="noopener">Book</a></div>
+      <div class="buy"><div><div class="b-t">Ice cream cake</div><div class="b-s">Order Sat Nov 7 morning for 4:00 PM delivery · about $45–$70 · no egg</div></div><span class="btns" style="margin:0"><a class="btn solid" href="https://www.carvel.com/" target="_blank" rel="noopener">Carvel</a><a class="btn" href="https://www.doordash.com/" target="_blank" rel="noopener">DoorDash</a></span></div>
+      <div class="buy"><div><div class="b-t">Jane's Carousel</div><div class="b-s">Sat · $4 a ride · buy at the ticket window at the carousel (no online tickets)</div></div><a class="btn" href="https://janescarousel.com/hours/" target="_blank" rel="noopener">Website</a></div>
+      <div class="buy"><div><div class="b-t">SeaGlass Carousel</div><div class="b-s">Sun · $6 a ride · buy at the kiosk in Battery Park (no online tickets) · opens 11 AM</div></div><a class="btn" href="https://seaglasscarousel.nyc/" target="_blank" rel="noopener">Website</a></div>
+      <div class="buy"><div><div class="b-t">LEGO Store, Fifth Avenue <span class="newtag">New</span></div><div class="b-s">Sun · free to walk in, no booking · Build-a-Minifigure station inside (pay in store)</div></div><a class="btn" href="https://www.lego.com/en-us/stores/store/5th-avenue" target="_blank" rel="noopener">Website</a></div>
+      <div class="buy"><div><div class="b-t">Nintendo NY <span class="newtag">New</span></div><div class="b-s">Sun · free to walk in, no reservation needed</div></div><a class="btn" href="https://www.nintendo.com/us/retail-locations/new-york/" target="_blank" rel="noopener">Website</a></div>
+      <div class="buy"><div><div class="b-t">Subway and buses</div><div class="b-s">Nothing to buy: tap a credit card or phone at the gate, one per adult</div></div><a class="btn" href="https://omny.info/" target="_blank" rel="noopener">How OMNY works</a></div>
+    </div>
+  </div>
+  <div class="note warn"><b>Scannable tickets:</b> each card below says where its real barcode lives (app, wallet or email). Before you leave, open each one once so it loads offline.</div>
+
+  <div class="ticket" id="t-flight">
+    <h3>Flights · Southwest</h3>
+    <dl class="kv">
+      <dt>Confirmation</dt><dd class="code">CMGWXE <button class="btn copy" type="button" data-copy="CMGWXE">Copy</button></dd>
+      <dt>Going</dt><dd>Fri Nov 6 · WN 2958 · Midway 7:15 PM → LaGuardia 10:20 PM</dd>
+      <dt>Return</dt><dd>Mon Nov 9 · WN 2578 · LaGuardia 5:55 PM → Midway 7:30 PM</dd>
+      <dt>Manan Shah</dt><dd class="code">Ticket 5262405020465</dd>
+      <dt>Chaitali Shah</dt><dd class="code">Ticket 5262405020466</dd>
+      <dt>Deeyan Shah</dt><dd class="code">Ticket 5262405020464</dd>
+      <dt>Seats</dt><dd>Assigned at check-in (Basic fare). Check in <b>Thu Nov 5, 7:15 PM Chicago time</b>.</dd>
+      <dt>Paid</dt><dd>$801.60 (base $714.42 + taxes; partly flight credit)</dd>
+      <dt>Scan at the gate</dt><dd>Boarding passes appear after check-in on Nov 5. Add them to Apple Wallet from the Southwest app.</dd>
+    </dl>
+    <div class="btns"><a class="btn solid" href="https://www.southwest.com/air/check-in/" target="_blank" rel="noopener">Check in / manage</a><a class="btn" href="tel:+18004359792">Call 1-800-435-9792</a></div>
+  </div>
+
+  <div class="ticket" id="t-hotel">
+    <h3>Hotel · Holiday Inn Brooklyn Downtown</h3>
+    <dl class="kv">
+      <dt>Hotel confirmation</dt><dd class="code">1060413358 <button class="btn copy" type="button" data-copy="1060413358">Copy</button></dd>
+      <dt>Priceline trip</dt><dd class="code">173-395-896-27 <button class="btn copy" type="button" data-copy="173-395-896-27">Copy</button></dd>
+      <dt>Dates</dt><dd>Fri Nov 6 – Mon Nov 9 (3 nights) · check-in after 3:00 PM</dd>
+      <dt>Address</dt><dd>300 Schermerhorn St, Brooklyn, NY 11217</dd>
+      <dt>Pool</dt><dd>Weekdays 7 AM–12 PM &amp; 7–10 PM · weekends 8 AM–12 PM &amp; 5:30–9:30 PM</dd>
+      <dt>Paid</dt><dd>$939.03 (Apple Pay)</dd>
+      <dt>At check-in</dt><dd>No barcode needed. Give your name and confirmation 1060413358, plus ID and a card.</dd>
+    </dl>
+    <div class="btns"><a class="btn" href="tel:+17186242211">Call 718-624-2211</a><a class="btn" href="https://www.google.com/maps/dir/?api=1&amp;destination=Holiday+Inn+Brooklyn+Downtown+300+Schermerhorn+St+Brooklyn&amp;travelmode=transit" target="_blank" rel="noopener">Directions from here</a><a class="btn" href="https://www.priceline.com/" target="_blank" rel="noopener">Priceline</a></div>
+  </div>
+
+  <div class="ticket" id="t-dine">
+    <h3>Birthday dinner · ONE Dine + Observatory</h3>
+    <dl class="kv">
+      <dt>When</dt><dd>Sat Nov 7 · <b>7:00 PM</b> · party of 3</dd>
+      <dt>Package</dt><dd>Dining Experience with a View (3 × $155), includes observatory entry</dd>
+      <dt>Observatory tickets</dt><dd>Pick up at <b>Guest Services desk, lower lobby</b></dd>
+      <dt>Where</dt><dd>117 West St, Floor 101, One World Trade Center</dd>
+      <dt>Paid</dt><dd>$589.95 incl. tax $41.25 + 18% tip $83.70 · Visa ****3596 · <b>don't tip again</b></dd>
+      <dt>Show at the door</dt><dd>OpenTable confirmation (app or email) at Guest Services. They hand you the observatory tickets.</dd>
+    </dl>
+    <div class="btns"><a class="btn solid" href="https://www.opentable.com/one-dine-at-one-world-observatory" target="_blank" rel="noopener">OpenTable</a><a class="btn" href="https://www.google.com/maps/dir/?api=1&amp;destination=One+World+Observatory+117+West+St+New+York&amp;travelmode=transit" target="_blank" rel="noopener">Directions from here</a></div>
+  </div>
+
+  <div class="ticket" id="t-statue">
+    <h3>Statue of Liberty · Pedestal Reserve</h3>
+    <dl class="kv">
+      <dt>Booking ID</dt><dd class="code">86447401 <button class="btn copy" type="button" data-copy="86447401">Copy</button></dd>
+      <dt>Confirmation No.</dt><dd class="code">i86447403 / 86447401</dd>
+      <dt>When</dt><dd>Sun Nov 8 · <b>boarding 9:30 AM · ferry 10:00 AM</b></dd>
+      <dt>Where</dt><dd>Castle Clinton, Battery Park, New York, NY 10004</dd>
+      <dt>Guests</dt><dd>2 × Adult Reserve with Pedestal (ages 13–61) · 1 × Child Reserve with Pedestal (ages 4–12)</dd>
+      <dt>Last entry to pedestal</dt><dd>4:00 PM</dd>
+      <dt>Good to know</dt><dd>Airport-style security before the ferry and again before the pedestal. Pedestal lockers cost 25¢ (bring quarters); no lockers at Battery Park security. Buy nothing from street sellers.</dd>
+      <dt>Paid</dt><dd>$69.90 (2 × $26.30 + $17.30)</dd>
+      <dt>Scan at security</dt><dd>QR code below (from your confirmation email). Checked: it reads 86447401.</dd>
+    </dl>
+    <div class="qr"><img alt="Statue City Cruises QR code, booking 86447401" src="data:image/png;base64,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"><div class="cap"><b>Scan this at Castle Clinton security.</b> One code for all 3 people (2 adults + 1 child). Turn screen brightness up. Backup: the confirmation email or Manage My Booking.</div></div>
+    <div class="btns"><a class="btn solid" href="https://www.statuecitycruises.com/" target="_blank" rel="noopener">Manage booking</a><a class="btn" href="https://www.google.com/maps/dir/?api=1&amp;destination=Castle+Clinton+National+Monument&amp;travelmode=transit" target="_blank" rel="noopener">Directions from here</a></div>
+  </div>
+
+  <div class="ticket" id="t-msg">
+    <h3>Madison Square Garden Tour</h3>
+    <dl class="kv">
+      <dt>When</dt><dd>Sun Nov 8 · <b>2:00 PM</b> · check in by 1:45</dd>
+      <dt>Tickets</dt><dd>3 · in the <b>Ticketmaster app → My Events</b> (add to phone wallet)</dd>
+      <dt>Entrance</dt><dd>7th Ave between 31st and 33rd St</dd>
+      <dt>Paid</dt><dd>$142.00 (all-in)</dd>
+      <dt>Scan at entry</dt><dd>Ticketmaster <b>SafeTix</b> barcodes change every few seconds, so a screenshot won't work. Open the Ticketmaster app or Apple Wallet at the door.</dd>
+    </dl>
+    <div class="btns"><a class="btn solid" href="https://www.ticketmaster.com/" target="_blank" rel="noopener">Ticketmaster</a><a class="btn" href="https://www.google.com/maps/dir/?api=1&amp;destination=Madison+Square+Garden&amp;travelmode=transit" target="_blank" rel="noopener">Directions from here</a></div>
+  </div>
+
+  <div class="ticket" id="t-amnh">
+    <h3>American Museum of Natural History</h3>
+    <dl class="kv">
+      <dt>Order number</dt><dd class="code">85450190 <button class="btn copy" type="button" data-copy="85450190">Copy</button></dd>
+      <dt>Customer number</dt><dd class="code">54862322</dd>
+      <dt>When</dt><dd>Mon Nov 9 · Admission + All · 2 adults + 1 child</dd>
+      <dt>Shows</dt><dd>10:30 Invisible Worlds (Fl 3, Gilder) · 11:30 Butterfly Vivarium (Fl 2, Gilder) · 12:30 Milky Way (Fl 1, Planetarium) · 1:30 Impact (Fl 4, Gallery 4)</dd>
+      <dt>Entrance</dt><dd>Rose Center, 81st St (shorter lines). Show tickets on your phone.</dd>
+      <dt>Paid</dt><dd>$126.00 · non-refundable</dd>
+      <dt>Scan at entry</dt><dd>3 QR codes below: <b>91770650 · 91770656 · 91770662</b>. Checked: all three scan.</dd>
+    </dl>
+    <div class="qr" style="justify-content:center"><figure style="margin:0;text-align:center"><img alt="Museum ticket QR code 91770650" src="data:image/png;base64,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"><figcaption style="font-weight:700;font-variant-numeric:tabular-nums">91770650</figcaption></figure><figure style="margin:0;text-align:center"><img alt="Museum ticket QR code 91770656" src="data:image/png;base64,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"><figcaption style="font-weight:700;font-variant-numeric:tabular-nums">91770656</figcaption></figure><figure style="margin:0;text-align:center"><img alt="Museum ticket QR code 91770662" src="data:image/png;base64,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"><figcaption style="font-weight:700;font-variant-numeric:tabular-nums">91770662</figcaption></figure><div class="cap" style="flex-basis:100%"><b>Scan one code per person at the Rose Center entrance (81st St).</b> 3 tickets: 2 adults + 1 child, Admission + All. Turn screen brightness up. Backup: the AMNH confirmation email.</div></div>
+    <div class="btns"><a class="btn" href="https://www.amnh.org/plan-your-visit" target="_blank" rel="noopener">Museum info</a><a class="btn" href="https://www.google.com/maps/dir/?api=1&amp;destination=American+Museum+of+Natural+History+Rose+Center+81st+Street&amp;travelmode=transit" target="_blank" rel="noopener">Directions from here</a></div>
+  </div>
+
+  <div class="ticket newt" id="t-transit">
+    <h3>New York Transit Museum <span class="newtag">New</span></h3>
+    <dl class="kv">
+      <dt>Order number</dt><dd class="code">14414305 <button class="btn copy" type="button" data-copy="14414305">Copy</button></dd>
+      <dt>When</dt><dd>Sat Nov 7 · <b>10:00 AM</b> entry · 30-min window to enter</dd>
+      <dt>Tickets</dt><dd>2 × Adult + 1 × Senior (62+). Booked as "senior" instead of "child"; same $10 price, so it scans fine. If asked, say the child ticket was sold out online and you paid the same amount.</dd>
+      <dt>Where</dt><dd>99 Schermerhorn St (Boerum Pl corner), Brooklyn · 12 min walk from the hotel</dd>
+      <dt>Hours</dt><dd>Wed–Sun 10 AM–4 PM · arrive no more than 5 min early, 30 min window to enter, no re-entry</dd>
+      <dt>Paid</dt><dd>$40.00 on Oct 27 · non-refundable</dd>
+      <dt>Scan at entry</dt><dd>3 barcodes below: <b>10474091 · 10474092 · 10474093</b>. Checked: all three scan.</dd>
+    </dl>
+    <div class="qr" style="flex-direction:column;align-items:stretch"><figure style="margin:0;text-align:center"><img alt="Transit Museum ticket barcode 10474091" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAbcAAAB9CAAAAAAE+HJRAAABoklEQVR4Xu3XS26DMABAQah6/ytT8TGGSFXXo75ZBALYmDyxyLotAX2Ba85SN1Tvm6luprqZ6mb6/mPZ635+W5Z1/1j27eHx5dhdx6F7bx55jJmz3XNcU78mGLZr6LU9lnEfvBc2VvS643ntfe6xrMcfn4+HGwPG2Plk55k5ctxqTDBvNn+qxzVj4Mflr8PH/OeYednvet9MdTPVzVQ3U91MdTPVzVQ3U91MdTPVzVQ3U91MdTPVzVQ3U91MdTPVzVQ3U91MdTPVzVQ3U91MdTPVzVQ3U91MdTPVzVQ3U91MdTPVzVQ3U91MdTPVzVQ3U91MdTPVzVQ3U91MdTPVzVQ3U91MdTPVzVQ3U91MdTPVzVQ3U91MdTPVzVQ3U91MdTPVzVQ3U91MdTPVzVQ3U91MdTPVzVQ3U91MdTPVzVQ3U91MdTPVzVQ3U91MdTPVzVQ3U91MdTPVzVQ3U91MdTPVzVQ3U91MdTPVzVQ3U91MdTPVzVQ3U91MdTPVzVQ3U91MdTPVzVQ3U91MdTPVzbRu5rr/u943U91MdTPVzVQ30w8yDyr52rMtvwAAAABJRU5ErkJggg==" style="width:100%;max-width:440px;image-rendering:auto"><figcaption style="font-weight:700;font-variant-numeric:tabular-nums">Ticket 10474091 · Adult</figcaption></figure><figure style="margin:0;text-align:center"><img alt="Transit Museum ticket barcode 10474092" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAbcAAAB9CAAAAAAE+HJRAAABoklEQVR4Xu3XS26DMABAQVP1/lcmAmE+jZSuR3mzSIgDNvDEgmUdAf2A55xRN1TPm6luprqZ6mb6/ee0l+3/dYxl+xjb9+72Y99c5tC5dY3cjrlmO+c4pv47wb7esdhj37E+h+c++/B8qXk/ev752P26jrnY9VZ0O2CueFzp7c1p3pXj1jxmeV/xvPz71nVPz0uYd+mTnjdT3Ux1M9XNVDdT3Ux1M9XNVDdT3Ux1M9XNVDdT3Ux1M9XNVDdT3Ux1M9XNVDdT3Ux1M9XNVDdT3Ux1M9XNVDdT3Ux1M9XNVDdT3Ux1M9XNVDdT3Ux1M9XNVDdT3Ux1M9XNVDdT3Ux1M9XNVDdT3Ux1M9XNVDdT3Ux1M9XNVDdT3Ux1M9XNVDdT3Ux1M9XNVDdT3Ux1M9XNVDdT3Ux1M9XNVDdT3Ux1M9XNVDdT3Ux1M9XNVDdT3Ux1M9XNVDdT3Ux1M9XNVDdT3Ux1M9XNVDdT3Ux1M9XNVDdT3Ux1M9XNVDdT3Ux1M9XNVDdT3Ux1M9XNVDdT3Ux1My2red7frufNVDdT3Ux1M9XN9AJTByr5r/7H/gAAAABJRU5ErkJggg==" style="width:100%;max-width:440px;image-rendering:auto"><figcaption style="font-weight:700;font-variant-numeric:tabular-nums">Ticket 10474092 · Adult</figcaption></figure><figure style="margin:0;text-align:center"><img alt="Transit Museum ticket barcode 10474093" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAbcAAAB9CAAAAAAE+HJRAAABoElEQVR4Xu3XMZKCQBRAwcHa+18ZC5YBJDHu8nWgAjJ8fEXgso6AXuDMGXVD9byZ6maqm6lupr8vYy/b8XWMZXsZ2/vutrF/XOau89O153bOtdq5xrH0c4F5vfPsOcZY53rnnmOijyvuI0+3jWvaOcu8xOPIHPC26nFz/+seX3/+KteqzxM/zrld/Bp0v7M565f/Zz1vprqZ6maqm6luprqZ6maqm6luprqZ6maqm6luprqZ6maqm6luprqZ6maqm6luprqZ6maqm6luprqZ6maqm6luprqZ6maqm6luprqZ6maqm6luprqZ6maqm6luprqZ6maqm6luprqZ6maqm6luprqZ6maqm6luprqZ6maqm6luprqZ6maqm6luprqZ6maqm6luprqZ6maqm6luprqZ6maqm6luprqZ6maqm6luprqZ6maqm6luprqZ6maqm6luprqZ6maqm6luprqZ6maqm6luprqZ6maqm6luprqZ6maqm6luprqZ6maqm6luprqZ6maqm6luprqZ6mZaVnPuX9fzZqqbqW6mupnqZnoDMw4q+Rq9sP0AAAAASUVORK5CYII=" style="width:100%;max-width:440px;image-rendering:auto"><figcaption style="font-weight:700;font-variant-numeric:tabular-nums">Ticket 10474093 · Senior (62+), use for Deeyan</figcaption></figure></div>
+    <div class="btns"><a class="btn solid" href="https://www.nytransitmuseum.org/know-before-you-visit/" target="_blank" rel="noopener">Museum info</a><a class="btn" href="https://www.google.com/maps/dir/?api=1&amp;destination=New+York+Transit+Museum+99+Schermerhorn+St+Brooklyn&amp;travelmode=walking" target="_blank" rel="noopener">Directions from here</a></div>
+  </div>
+  <div class="ticket newt" id="t-lego">
+    <h3>LEGO Store, Fifth Avenue <span class="newtag">New</span></h3>
+    <dl class="kv">
+      <dt>When</dt><dd>Sun Nov 8 · about 5:55 PM, after FAO Schwarz and Nintendo</dd>
+      <dt>Where</dt><dd>636 Fifth Ave (at 51st St), Rockefeller Center</dd>
+      <dt>Hours</dt><dd>Sunday 10 AM–8 PM</dd>
+      <dt>Tickets</dt><dd>None needed. Free to walk in.</dd>
+      <dt>For Deeyan</dt><dd>Giant LEGO models and the <b>Build a Minifigure</b> station (pay at the register)</dd>
+      <dt>Phone</dt><dd><a href="tel:+19294933074">929-493-3074</a></dd>
+    </dl>
+    <div class="btns"><a class="btn solid" href="https://www.lego.com/en-us/stores/store/5th-avenue" target="_blank" rel="noopener">Store website</a><a class="btn" href="https://www.google.com/maps/dir/?api=1&amp;destination=LEGO+Store+636+Fifth+Ave+New+York&amp;travelmode=walking" target="_blank" rel="noopener">Directions from here</a></div>
+  </div>
+  <div class="ticket newt" id="t-nintendo">
+    <h3>Nintendo NY <span class="newtag">New</span></h3>
+    <dl class="kv">
+      <dt>When</dt><dd>Sun Nov 8 · about 5:35 PM, right after FAO Schwarz</dd>
+      <dt>Where</dt><dd>10 Rockefeller Plaza (48th St side)</dd>
+      <dt>Hours</dt><dd>Sunday 11 AM–7 PM</dd>
+      <dt>Tickets</dt><dd>None needed. Free, no reservation.</dd>
+    </dl>
+    <div class="btns"><a class="btn solid" href="https://www.nintendo.com/us/retail-locations/new-york/" target="_blank" rel="noopener">Store website</a><a class="btn" href="https://www.google.com/maps/dir/?api=1&amp;destination=Nintendo+NY+10+Rockefeller+Plaza&amp;travelmode=walking" target="_blank" rel="noopener">Directions from here</a></div>
+  </div>
+  <div class="ticket pending" id="t-bags">
+    <h3>Luggage storage · LuggageHero American Museum <span class="chip">To book</span></h3>
+    <dl class="kv">
+      <dt>Book for</dt><dd>Mon Nov 9 · drop-off 9:50 AM · pick-up 2:15 PM · 2 bags</dd>
+      <dt>Why this one</dt><dd>Open 24 hours, 4.8 stars (812 reviews), about 8 min walk</dd>
+      <dt>Cost</dt><dd>About $14–$19 ($6.90 per bag per day + $2.49 fee)</dd>
+    </dl>
+    <div class="btns"><a class="btn solid" href="https://app.luggagehero.com/" target="_blank" rel="noopener">Book on LuggageHero</a></div>
+  </div>
+
+  <div class="ticket pending" id="t-cake">
+    <h3>Ice cream cake <span class="chip">Order Sat morning</span></h3>
+    <dl class="kv">
+      <dt>Deliver</dt><dd>Sat Nov 7 · <b>4:00 PM</b> <span class="chg">New time</span> · Holiday Inn front desk, 300 Schermerhorn St</dd>
+      <dt>From</dt><dd>A Carvel or Baskin-Robbins near the hotel · check it has <b>no egg</b></dd>
+      <dt>Cost</dt><dd>About $45–$70</dd>
+    </dl>
+    <div class="btns"><a class="btn solid" href="https://www.doordash.com/" target="_blank" rel="noopener">DoorDash</a><a class="btn" href="https://www.ubereats.com/" target="_blank" rel="noopener">Uber Eats</a><a class="btn" href="https://www.carvel.com/" target="_blank" rel="noopener">Carvel</a></div>
+  </div>
+</section>
+
+<!-- ================= TO DO ================= -->
+<section id="todo" class="stack" aria-labelledby="todo-h">
+  <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px">
+    <h2 id="todo-h">Still to do</h2>
+    <span style="font-weight:700;color:var(--ok)" id="progress">0 of 8 done</span>
+  </div>
+  <p class="muted small">Ticks save on this phone only.</p>
+
+  <label class="todo" for="d9" style="border-color:var(--new);background:var(--new-soft)"><input type="checkbox" id="d9"><div class="stack" style="gap:6px"><span class="todo-title">Book Transit Museum ✓ Done Oct 27</span><span class="small muted">Order 14414305 · Sat Nov 7, 10:00 AM · $40 paid. Tick this box.</span><span class="btns"><a class="btn" href="#t-transit">Ticket card</a></span></div></label>
+  <label class="todo" for="d1"><input type="checkbox" id="d1"><div class="stack" style="gap:6px"><span class="todo-title">Book LuggageHero (Mon Nov 9)</span><span class="small muted">LuggageHero American Museum · drop-off 9:50 AM · pick-up 2:15 PM · 2 bags.</span><span class="btns"><a class="btn solid" href="https://app.luggagehero.com/" target="_blank" rel="noopener">LuggageHero</a></span></div></label>
+  <label class="todo" for="d2"><input type="checkbox" id="d2"><div class="stack" style="gap:6px"><span class="todo-title">Message ONE Dine</span><span class="small muted">OpenTable app → reservation → <b>Send message</b>: "Son's 7th birthday. We are strict vegetarian, no meat, fish or egg. Could you add a candle to his dessert? Window table if possible."</span><span class="btns"><a class="btn solid" href="https://www.opentable.com/one-dine-at-one-world-observatory" target="_blank" rel="noopener">OpenTable</a></span></div></label>
+  <label class="todo" for="d3"><input type="checkbox" id="d3"><div class="stack" style="gap:6px"><span class="todo-title">Call the hotel</span><span class="small muted">Give confirmation 1060413358. Ask them to note a <b>late arrival around 12:15 AM</b>, confirm <b>2 queen beds</b>, confirm no extra resort fee, and that they'll hold a cake delivery at the front desk Saturday around 4 PM.</span><span class="btns"><a class="btn solid" href="tel:+17186242211">Call 718-624-2211</a></span></div></label>
+  <label class="todo" for="d4"><input type="checkbox" id="d4"><div class="stack" style="gap:6px"><span class="todo-title">Add MSG tickets to phone wallet</span><span class="small muted">Ticketmaster app → My Events → Add to Wallet.</span></div></label>
+  <label class="todo" for="d5"><input type="checkbox" id="d5"><div class="stack" style="gap:6px"><span class="todo-title">Measure Deeyan (44 inches?)</span><span class="small muted">Under 44 in = rides the subway free. Taller = needs his own tap ($3).</span></div></label>
+  <label class="todo" for="d6"><input type="checkbox" id="d6"><div class="stack" style="gap:6px"><span class="todo-title">Southwest check-in · Thu Nov 5, 7:15 PM Chicago time</span><span class="small muted">Check in the minute it opens so you sit together. Check your bag allowance on the boarding pass.</span><span class="btns"><a class="btn solid" href="https://www.southwest.com/air/check-in/" target="_blank" rel="noopener">Check in</a></span></div></label>
+  <label class="todo" for="d7"><input type="checkbox" id="d7"><div class="stack" style="gap:6px"><span class="todo-title">Order the ice cream cake · Sat Nov 7 morning</span><span class="small muted">Delivery <b>4:00 PM</b> to the hotel front desk. No egg.</span><span class="btns"><a class="btn solid" href="https://www.doordash.com/" target="_blank" rel="noopener">DoorDash</a><a class="btn" href="https://www.ubereats.com/" target="_blank" rel="noopener">Uber Eats</a></span></div></label>
+  <label class="todo" for="d8"><input type="checkbox" id="d8"><div class="stack" style="gap:6px"><span class="todo-title">Pack warm</span><span class="small muted">Usually 40s–50s °F, colder on the bridge and ferry. Hats, gloves, jackets, swimsuits.</span><span class="btns"><a class="btn" href="https://forecast.weather.gov/MapClick.php?lat=40.7128&amp;lon=-74.006" target="_blank" rel="noopener">NYC weather</a></span></div></label>
+</section>
+
+<!-- ================= MONEY ================= -->
+<section id="money" class="card stack" aria-labelledby="money-h">
+  <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px">
+    <h2 id="money-h">Money</h2>
+    <span style="font-family:var(--display);font-weight:800;font-size:22px;color:var(--ok)">$2,733.48 paid</span>
+  </div>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr><th>Item</th><th>Status</th><th class="n">Amount</th></tr></thead>
+    <tbody>
+      <tr><td>Hotel (Priceline)</td><td>Paid</td><td class="n">$939.03</td></tr>
+      <tr><td>Flights (Southwest)</td><td>Paid</td><td class="n">$801.60</td></tr>
+      <tr><td>ONE Dine + observatory</td><td>Paid</td><td class="n">$589.95</td></tr>
+      <tr><td>MSG tour</td><td>Paid</td><td class="n">$142.00</td></tr>
+      <tr><td>Natural History Museum</td><td>Paid</td><td class="n">$126.00</td></tr>
+      <tr><td>Statue of Liberty ferry</td><td>Paid</td><td class="n">$69.90</td></tr>
+      <tr class="new"><td>Transit Museum (order 14414305)</td><td>Paid</td><td class="n">$40.00</td></tr>
+      <tr class="new"><td>Deeyan's adventure book (Staples) <span class="newtag">New</span></td><td>Paid</td><td class="n">$25.00</td></tr>
+      <tr class="total"><td>Paid so far</td><td></td><td class="n">$2,733.48</td></tr>
+
+      <tr><td>LuggageHero, 2 bags</td><td>To book</td><td class="n">$14–$19</td></tr>
+      <tr><td>Ice cream cake</td><td>Sat</td><td class="n">$45–$70</td></tr>
+      <tr><td>All subway + bus rides (Q70 free; $35 cap per card)</td><td>Trip</td><td class="n">$70–$105</td></tr>
+      <tr><td>Carousels (Jane's + SeaGlass)</td><td>Trip</td><td class="n">$30</td></tr>
+      <tr><td>Meals (adult breakfasts, lunches, Ellen's, snacks)</td><td>Trip</td><td class="n">$400–$530</td></tr>
+      <tr><td>Souvenirs &amp; treats</td><td>Trip</td><td class="n">$100–$200</td></tr>
+      <tr class="total"><td>Still to spend</td><td></td><td class="n">$659–$954</td></tr>
+      <tr class="total"><td>Whole trip</td><td></td><td class="n">$3,392–$3,687</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<!-- ================= PHONES ================= -->
+<section id="phones" class="card stack" aria-labelledby="ph-h">
+  <h2 id="ph-h">Phone numbers</h2>
+  <p class="small muted">If Call doesn't open your phone, tap Copy and dial.</p>
+  <div>
+    <div class="contact"><div><div><b>Hotel</b> · Holiday Inn Brooklyn Downtown</div><div class="num">+1 718-624-2211</div></div><div class="btns"><a class="btn" href="tel:+17186242211">Call</a><button class="btn copy" type="button" data-copy="+1 718-624-2211">Copy</button></div></div>
+    <div class="contact"><div><div><b>Southwest Airlines</b></div><div class="num">1-800-435-9792</div></div><div class="btns"><a class="btn" href="tel:+18004359792">Call</a><button class="btn copy" type="button" data-copy="1-800-435-9792">Copy</button></div></div>
+    <div class="contact"><div><div><b>Saravanaa Bhavan</b> · Sun lunch</div><div class="num">+1 212-684-7755</div></div><div class="btns"><a class="btn" href="tel:+12126847755">Call</a><button class="btn copy" type="button" data-copy="+1 212-684-7755">Copy</button></div></div>
+    <div class="contact"><div><div><b>Ellen's Stardust Diner</b> · Sun dinner</div><div class="num">+1 212-956-5151</div></div><div class="btns"><a class="btn" href="tel:+12129565151">Call</a><button class="btn copy" type="button" data-copy="+1 212-956-5151">Copy</button></div></div>
+    <div class="contact"><div><div><b>LEGO Store</b> · Fifth Ave</div><div class="num">+1 929-493-3074</div></div><div class="btns"><a class="btn" href="tel:+19294933074">Call</a><button class="btn copy" type="button" data-copy="+1 929-493-3074">Copy</button></div></div>
+    <div class="contact"><div><div><b>Natural History Museum</b></div><div class="num">+1 212-769-5100</div></div><div class="btns"><a class="btn" href="tel:+12127695100">Call</a><button class="btn copy" type="button" data-copy="+1 212-769-5100">Copy</button></div></div>
+    <div class="contact"><div><div><b>Vatan</b> · backup veg dinner (thali)</div><div class="num">+1 212-689-5666</div></div><div class="btns"><a class="btn" href="tel:+12126895666">Call</a><button class="btn copy" type="button" data-copy="+1 212-689-5666">Copy</button></div></div>
+  </div>
+</section>
+
+<section class="card stack" aria-labelledby="tips-h">
+  <h2 id="tips-h">Good to know</h2>
+  <ul class="tips">
+    <li><b>Running late?</b> Every blue row has a backup. A taxi or Uber is always fine to keep the day on time.</li>
+    <li><b>Vegetarian:</b> ONE Dine, Eataly and Ellen's also serve meat. Say "strict vegetarian, no egg" when you order, and ask about meat stock.</li>
+    <li><b>Subway service changes</b> happen on weekends. If a sign says your train isn't running, tap "Directions from here" for the live route.</li>
+    <li><b>Cloudy birthday?</b> Low clouds can hide the view from the top. Dinner still happens; enjoy the lights below.</li>
+    <li><b>Jane's Carousel</b> is closed Mondays and Tuesdays, so it's Saturday only.</li>
+  </ul>
+</section>
+
+<p class="small muted">All times New York time unless marked Chicago. Prices and hours checked Sep 30, 2026; new stops checked Oct 7, 2026.</p>
+
+</div>
+
+<nav class="appnav" id="appnav" aria-label="Sections">
+  <button type="button" data-tab="plan" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v14M15 6v14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Plan</span></button>
+  <button type="button" data-tab="tickets"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8a2 2 0 0 0 0 4v4h18v-4a2 2 0 0 1 0-4V4H3v4zM14 4v16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Tickets</span></button>
+  <button type="button" data-tab="todo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12l5 5L20 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>To do</span><em class="badge" id="todo-badge" hidden></em></button>
+  <button type="button" data-tab="money"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M17 7.5C17 5.6 14.8 5 12 5S7 6 7 8s2 2.7 5 3.5 5 1.5 5 3.5-2.2 3-5 3-5-.6-5-2.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Money</span></button>
+  <button type="button" data-tab="more"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Phones</span></button>
+</nav>
+<button type="button" class="latebtn" id="latebtn" data-panel="plan">Running late?</button>
+<dialog id="latedlg" class="sheet" aria-labelledby="late-h"><div class="sheet-in">
+  <h2 id="late-h">Running late?</h2>
+  <p class="late-status" id="late-status"></p>
+  <div class="late-next" id="late-next"></div>
+  <h3>Plan B for <span id="late-day"></span></h3>
+  <ul class="tips" id="late-tips"></ul>
+  <button type="button" class="btn solid" id="lateclose">Close</button>
+</div></dialog>
+<dialog id="qrdlg" class="qrdlg"><div class="qr-big"><img id="qrimg" alt=""><p id="qrcap"></p><p class="qr-tip">Turn your screen brightness all the way up.</p><button type="button" class="btn solid" id="qrclose">Close</button></div></dialog>
+<script>
+(function(){
+  var root = document.documentElement;
+  root.classList.add('app');
+  var LS = {get:function(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}}, set:function(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}};
+  var $ = function(q,c){return (c||document).querySelector(q);}, $$ = function(q,c){return Array.prototype.slice.call((c||document).querySelectorAll(q));};
+
+  /* ---------- panels ---------- */
+  var PANELS = {plan:['#hero','#next','#here','#alerts','.legend','.tools','.howto','#daybar','.day','#latebtn'], tickets:['#tickets'], todo:['#todo'], money:['#money'], more:['#phones','section[aria-labelledby="tips-h"]','.wrap > p.small.muted']};
+  Object.keys(PANELS).forEach(function(k){ PANELS[k].forEach(function(q){ $$(q).forEach(function(el){ el.setAttribute('data-panel',k); }); }); });
+  var tab = 'plan';
+  function setTab(t, noScroll){
+    tab = t;
+    $$('[data-panel]').forEach(function(el){ el.classList.toggle('pshow', el.getAttribute('data-panel')===t); });
+    $$('#appnav button').forEach(function(b){ if (b.dataset.tab===t) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
+    LS.set('nyc-tab', t);
+    if (!noScroll) window.scrollTo(0,0);
+  }
+  $$('#appnav button').forEach(function(b){ b.addEventListener('click', function(){ setTab(b.dataset.tab); }); });
+
+  /* ---------- days ---------- */
+  var days = ['fri','sat','sun','mon'], day = 'fri';
+  function setDay(d, noScroll){
+    day = d;
+    days.forEach(function(x){ $('#'+x).classList.toggle('dshow', x===d); });
+    $$('#daybar button').forEach(function(b){ b.setAttribute('aria-selected', b.dataset.day===d ? 'true':'false'); });
+    LS.set('nyc-day', d);
+    if (!noScroll) { var db=$('#daybar'); var y=db.getBoundingClientRect().top + window.scrollY - 8; if (window.scrollY > y) window.scrollTo(0,y); }
+  }
+  $$('#daybar button').forEach(function(b){ b.addEventListener('click', function(){ setDay(b.dataset.day); }); });
+
+  /* ---------- steps: icons, collapse, done ---------- */
+  var ICONS = {
+    train:'<path d="M7 3h10a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3zM4 10h16M8 21l2-4M16 21l-2-4"/><circle cx="8.5" cy="13.5" r=".8"/><circle cx="15.5" cy="13.5" r=".8"/>',
+    walk:'<circle cx="13" cy="4" r="2"/><path d="M10 21l2-6 3 3v3M9 12l2-4 4 2 2 3M11 8l-2 5"/>',
+    car:'<path d="M5 16V11l2-5h10l2 5v5M3 16h18v3H3zM7 19v2M17 19v2M5 11h14"/>',
+    plane:'<path d="M2 15l20-6-3-2-7 2-5-4-2 1 3 5-5 2z M7 19h12"/>',
+    boat:'<path d="M3 15h18l-3 5H6zM12 4v11M12 5l6 7h-6"/>',
+    eat:'<path d="M7 3v8a2 2 0 0 0 4 0V3M9 11v10M17 3c-2 2-2 6 0 8v10"/>',
+    star:'<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>',
+    cake:'<path d="M4 21h16v-8H4zM4 16c2 1 4 1 6 0s4-1 6 0 4 1 4 0M12 13V9M12 6a1.5 1.5 0 0 0 0-3"/>',
+    swim:'<path d="M2 17c2 1.5 4 1.5 6 0s4-1.5 6 0 4 1.5 6 0M2 21c2 1.5 4 1.5 6 0s4-1.5 6 0 4 1.5 6 0M8 13l4-6 4 2"/><circle cx="17" cy="6" r="1.6"/>',
+    bed:'<path d="M3 18V7M3 13h18v5M7 13V10h5v3"/>'
+  };
+  function iconFor(st){
+    var t = st.textContent;
+    if (st.classList.contains('eat')) return 'eat';
+    if (st.classList.contains('go')) {
+      if (/Drive/.test(t)) return 'car';
+      if (/ferry|Ferry/.test(t) && !st.querySelector('.ln')) return 'boat';
+      if (st.querySelector('.ln')) return 'train';
+      return 'walk';
+    }
+    t = (st.querySelector('.t')||st).textContent;
+    if (/Flight|takes off/.test(t)) return 'plane';
+    if (/swim|Pool/.test(t)) return 'swim';
+    if (/cake/.test(t)) return 'cake';
+    if (/sleep|Check in and sleep/.test(t)) return 'bed';
+    if (/Ferry to/.test(t)) return 'boat';
+    return 'star';
+  }
+  var done = LS.get('nyc-steps-done', {});
+  $$('.day').forEach(function(sec){
+    $$('.step', sec).forEach(function(st, i){
+      var key = sec.id + '-' + i; st.dataset.key = key;
+      var what = $('.what', st), title = $('.t', what);
+      var more = document.createElement('div'); more.className = 'more';
+      Array.prototype.slice.call(what.children).forEach(function(ch){ if (ch !== title) more.appendChild(ch); });
+      // one-line summary
+      var sumTxt = '';
+      var arr = $('.arrive', more), how = $('.how', more);
+      if (arr) sumTxt = arr.textContent; else if (how) sumTxt = how.textContent; else { var li = $('li', more); if (li) sumTxt = li.textContent; }
+      sumTxt = sumTxt.replace(/\s+/g,' ').trim();
+      if (sumTxt.length > 88) sumTxt = sumTxt.slice(0, 86).replace(/\s\S*$/,'') + '…';
+      var sum = document.createElement('div'); sum.className = 'sum'; sum.textContent = sumTxt;
+      what.appendChild(sum); if (more.children.length) what.appendChild(more); else st.classList.add('nomore');
+      // quick directions button (visible while closed)
+      var dir = $$('a.btn', more).filter(function(a){ return /google\.com\/maps/.test(a.href); })[0];
+      if (dir) { var q = document.createElement('a'); q.className = 'qdir'; q.href = dir.href; q.target = '_blank'; q.rel = 'noopener'; q.textContent = 'Directions'; what.appendChild(q); }
+      // icon + check + chevron
+      var tm = $('.time', st);
+      var ic = document.createElement('span'); ic.className = 'ic'; ic.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + ICONS[iconFor(st)] + '</svg>';
+      tm.insertBefore(ic, tm.firstChild);
+      var chk = document.createElement('button'); chk.type = 'button'; chk.className = 'chk'; chk.setAttribute('aria-label', 'Mark done: ' + title.textContent.trim());
+      st.insertBefore(chk, st.firstChild);
+      if (!st.classList.contains('nomore')) { var cv = document.createElement('span'); cv.className = 'chev'; cv.setAttribute('aria-hidden','true'); st.appendChild(cv); }
+      title.setAttribute('role','button'); title.setAttribute('tabindex','0'); title.setAttribute('aria-expanded','false');
+      if (done[key]) st.classList.add('done');
+      chk.addEventListener('click', function(e){
+        e.stopPropagation();
+        st.classList.toggle('done'); done[key] = st.classList.contains('done'); LS.set('nyc-steps-done', done);
+        chk.setAttribute('aria-pressed', done[key] ? 'true':'false'); progress();
+        if (done[key]) { st.classList.remove('open'); title.setAttribute('aria-expanded','false'); }
+      });
+      chk.setAttribute('aria-pressed', done[key] ? 'true':'false');
+      function toggle(){ if (st.classList.contains('nomore')) return; var o = st.classList.toggle('open'); title.setAttribute('aria-expanded', o?'true':'false'); }
+      st.addEventListener('click', function(e){ if (e.target.closest('a,button,.more,input,label')) return; toggle(); });
+      title.addEventListener('keydown', function(e){ if (e.key==='Enter'||e.key===' ') { e.preventDefault(); toggle(); } });
+    });
+    var head = $('.dayhead', sec);
+    var pr = document.createElement('div'); pr.className = 'dprog'; pr.innerHTML = '<div class="bar"><i></i></div><span></span>';
+    head.appendChild(pr);
+  });
+  function progress(){
+    days.forEach(function(d){
+      var all = $$('#'+d+' .step'), n = all.filter(function(s){ return s.classList.contains('done'); }).length;
+      var sec = $('#'+d); $('.dprog i', sec).style.width = (all.length ? n/all.length*100 : 0) + '%';
+      $('.dprog span', sec).textContent = n === all.length && n ? 'All done!' : n + ' of ' + all.length + ' done';
+      var dp = $('#daybar button[data-day="'+d+'"] .dp'); dp.style.width = (all.length ? n/all.length*100 : 0) + '%';
+    });
+  }
+  progress();
+
+  /* ---------- jump to anything ---------- */
+  function goTo(el){
+    if (!el) return;
+    var p = el.closest('[data-panel]'); if (p) setTab(p.getAttribute('data-panel'), true);
+    var d = el.closest('.day'); if (d) setDay(d.id, true);
+    var st = el.closest('.step') || (el.classList.contains('step') ? el : null);
+    if (st && !st.classList.contains('nomore')) { st.classList.add('open'); var t=$('.t',st); if(t) t.setAttribute('aria-expanded','true'); }
+    setTimeout(function(){ var y = el.getBoundingClientRect().top + window.scrollY - (d ? 84 : 16); window.scrollTo({top:y, behavior:'smooth'}); el.classList.add('flash'); setTimeout(function(){ el.classList.remove('flash'); }, 1600); }, 30);
+  }
+  document.addEventListener('click', function(e){
+    var a = e.target.closest('a[href^="#"]'); if (!a) return;
+    var id = a.getAttribute('href').slice(1); if (!id) return;
+    var el = document.getElementById(id); if (!el) return;
+    e.preventDefault(); goTo(el);
+  });
+
+
+  /* ---------- alternate routes on every travel step ---------- */
+  function destOf(st){ var a = $$('a', st).filter(function(x){ return /google\.com\/maps\/dir/.test(x.href); })[0]; if (!a) return null; var m = a.href.match(/destination=([^&]+)/); return m ? decodeURIComponent(m[1].replace(/\+/g,' ')) : null; }
+  function gm(dest, mode){ return 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(dest) + '&travelmode=' + mode; }
+  function uber(dest){ return 'https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff%5Bformatted_address%5D=' + encodeURIComponent(dest); }
+  $$('.day .step.go').forEach(function(st){
+    var d = destOf(st); if (!d) return;
+    var box = document.createElement('div'); box.className = 'alts';
+    box.innerHTML = '<span class="alts-h">Other ways to get there (live times):</span><div class="alts-r">' +
+      '<a target="_blank" rel="noopener" href="'+gm(d,'transit')+'">Train/bus</a>' +
+      '<a target="_blank" rel="noopener" href="'+gm(d,'walking')+'">Walk</a>' +
+      '<a target="_blank" rel="noopener" href="'+gm(d,'driving')+'">Car + traffic</a>' +
+      '<a target="_blank" rel="noopener" href="'+uber(d)+'">Uber</a></div>';
+    var more = $('.more', st); if (more) more.appendChild(box);
+  });
+
+  /* ---------- running late ---------- */
+  var PLANB = {
+    fri: ['Flight delayed? The Southwest app shows the new time. Everything after landing just shifts.', 'Landing after 11:30 PM or he\'s asleep: skip the bus + train and take a taxi from the Terminal B taxi line (about 30 min, $55–$75).'],
+    sat: ['Morning running behind? Shorten the Transit Museum (tickets are non-refundable, so still go) or skip the carousel park walk.', 'Bridge too long or too cold: walk halfway, come back, take the A/C from High St 2 stops to Fulton St.', 'Behind after lunch: skip the Oculus and keep the 9/11 pools short.', 'Late leaving for dinner (5:40): take an Uber to One World Observatory, about 25–35 min, $30–$45. Dinner at 7:00 is fixed.'],
+    sun: ['The 10:00 ferry is fixed. Late leaving the hotel? Uber to Battery Park, about 20 min.', 'Behind after the ferry: skip the SeaGlass Carousel and take an Uber to MSG (about 25 min). Check-in is by 1:45.', 'Tired after lunch: skip one of Nintendo or LEGO.', 'Long line at Ellen\'s: get milkshakes and go, or eat at Vatan (veg thali, call first).'],
+    mon: ['Leave the museum by 2:00 at the latest. Running behind? Skip the Impact show.', 'After 2:30: Uber from LuggageHero straight to LaGuardia Terminal B, about 30–40 min, $45–$65.', 'Be at the airport by 4:15 at the latest for the 5:55 flight.']
+  };
+  var DN = {fri:'Friday', sat:'Saturday', sun:'Sunday', mon:'Monday'};
+  var ldlg = $('#latedlg');
+  function openLate(){
+    var nowT = new Date(), list = $$('.day .step[data-at]');
+    var cur = null; for (var i=0;i<list.length;i++){ if (!list[i].classList.contains('done') && new Date(list[i].getAttribute('data-at')) >= new Date(nowT.getTime() - 3*3600000)) { cur = list[i]; break; } }
+    var stx = $('#late-status'), nx = $('#late-next');
+    var d = cur ? cur.closest('.day').id : day;
+    if (nowT < new Date('2026-11-06T00:00:00-06:00')) { stx.textContent = 'The trip hasn\'t started yet. Here\'s the backup plan for ' + DN[day] + ' so you know it ahead of time.'; d = day; nx.innerHTML = ''; }
+    else if (!cur) { stx.textContent = 'Everything is checked off. Nice!'; nx.innerHTML = ''; }
+    else {
+      var mins = Math.round((nowT - new Date(cur.getAttribute('data-at')))/60000);
+      var t = $('.t', cur).textContent.replace(/Birthday|New time.*|New\b/g,'').trim();
+      stx.textContent = mins > 5 ? 'You\'re about ' + mins + ' min behind "' + t + '".' : 'You\'re on time. Next: "' + t + '".';
+      var target = cur.classList.contains('go') ? cur : null;
+      if (!target) { var all = $$('.step.go', cur.closest('.day')); for (var k=0;k<all.length;k++){ if (new Date(all[k].getAttribute('data-at')) >= new Date(cur.getAttribute('data-at'))) { target = all[k]; break; } } }
+      var dest = target ? destOf(target) : null;
+      nx.innerHTML = dest ? '<p>Fastest way to the next stop:</p><div class="alts-r"><a class="btn solid" target="_blank" rel="noopener" href="'+gm(dest,'driving')+'">Car + live traffic</a><a class="btn" target="_blank" rel="noopener" href="'+uber(dest)+'">Uber</a><a class="btn" target="_blank" rel="noopener" href="'+gm(dest,'transit')+'">Train/bus</a></div>' : '';
+    }
+    $('#late-day').textContent = DN[d];
+    $('#late-tips').innerHTML = PLANB[d].map(function(x){ return '<li>' + x.replace(/&/g,'&amp;').replace(/</g,'&lt;') + '</li>'; }).join('');
+    if (ldlg.showModal) ldlg.showModal(); else ldlg.setAttribute('open','');
+  }
+  $('#latebtn').addEventListener('click', openLate);
+  $('#lateclose').addEventListener('click', function(){ ldlg.close ? ldlg.close() : ldlg.removeAttribute('open'); });
+  ldlg.addEventListener('click', function(e){ if (e.target === ldlg) ldlg.close(); });
+
+
+  /* ---------- where am I (offline GPS) ---------- */
+  var GEO = {
+    'Chicago Midway International Airport':[41.7868,-87.7522],'LaGuardia Airport Terminal B':[40.7731,-73.8740],
+    'Holiday Inn Brooklyn Downtown 300 Schermerhorn St Brooklyn':[40.6878,-73.9826],'New York Transit Museum 99 Schermerhorn St Brooklyn':[40.6906,-73.9900],
+    "Jane's Carousel Brooklyn":[40.7043,-73.9918],'Eataly NYC Downtown 101 Liberty St':[40.7103,-74.0120],'9/11 Memorial Pools':[40.7115,-74.0134],
+    'One World Observatory 117 West St New York':[40.7130,-74.0132],'Castle Clinton National Monument':[40.7034,-74.0170],'SeaGlass Carousel Battery Park':[40.7027,-74.0152],
+    'Madison Square Garden':[40.7505,-73.9934],'Saravanaa Bhavan 81 Lexington Ave New York':[40.7416,-73.9834],'Times Square New York':[40.7580,-73.9855],
+    'FAO Schwarz 30 Rockefeller Plaza':[40.7589,-73.9790],'Nintendo NY 10 Rockefeller Plaza':[40.7584,-73.9794],'LEGO Store 636 Fifth Ave New York':[40.7597,-73.9769],
+    "Ellen's Stardust Diner 1650 Broadway":[40.7623,-73.9838],'American Museum of Natural History Rose Center 81st Street':[40.7817,-73.9730]
+  };
+  var NAMES = {'Holiday Inn Brooklyn Downtown 300 Schermerhorn St Brooklyn':'the hotel','New York Transit Museum 99 Schermerhorn St Brooklyn':'Transit Museum','Eataly NYC Downtown 101 Liberty St':'Eataly','One World Observatory 117 West St New York':'One World Observatory','Castle Clinton National Monument':'Castle Clinton (ferry)','Saravanaa Bhavan 81 Lexington Ave New York':'Saravanaa Bhavan','American Museum of Natural History Rose Center 81st Street':'Natural History Museum','Chicago Midway International Airport':'Midway Airport','LaGuardia Airport Terminal B':'LaGuardia Terminal B',"Ellen's Stardust Diner 1650 Broadway":"Ellen's Stardust Diner",'LEGO Store 636 Fifth Ave New York':'LEGO Store','Nintendo NY 10 Rockefeller Plaza':'Nintendo NY','FAO Schwarz 30 Rockefeller Plaza':'FAO Schwarz','Times Square New York':'Times Square','9/11 Memorial Pools':'9/11 Memorial pools','SeaGlass Carousel Battery Park':'SeaGlass Carousel',"Jane's Carousel Brooklyn":"Jane's Carousel",'Madison Square Garden':'Madison Square Garden'};
+  function hav(a,b){ var R=6371000, toR=Math.PI/180, dLat=(b[0]-a[0])*toR, dLon=(b[1]-a[1])*toR, la1=a[0]*toR, la2=b[0]*toR; var h=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(la1)*Math.cos(la2)*Math.sin(dLon/2)*Math.sin(dLon/2); return 2*R*Math.asin(Math.sqrt(h)); }
+  function bearing(a,b){ var toR=Math.PI/180, y=Math.sin((b[1]-a[1])*toR)*Math.cos(b[0]*toR), x=Math.cos(a[0]*toR)*Math.sin(b[0]*toR)-Math.sin(a[0]*toR)*Math.cos(b[0]*toR)*Math.cos((b[1]-a[1])*toR); return (Math.atan2(y,x)*180/Math.PI+360)%360; }
+  function compass(d){ return ['north','northeast','east','southeast','south','southwest','west','northwest'][Math.round(d/45)%8]; }
+  function fmtDist(m){ var mi=m/1609.34; return mi<0.19 ? Math.round(m*3.281/10)*10+' ft' : mi.toFixed(1)+' mi'; }
+  function upcomingGo(){ var n=new Date(), list=$$('.day .step.go[data-at]'); var best=null; for (var i=0;i<list.length;i++){ if (list[i].classList.contains('done')) continue; var t=new Date(list[i].getAttribute('data-at')); if (t.getTime()+90*60000 >= n.getTime()) { best=list[i]; break; } } return best || list[list.length-1]; }
+  var heading=null; try { window.addEventListener('deviceorientationabsolute', function(e){ if (e.alpha!=null) heading=360-e.alpha; }, true); window.addEventListener('deviceorientation', function(e){ if (e.webkitCompassHeading!=null) heading=e.webkitCompassHeading; }, true); } catch(e){}
+  var lastFix=null, lastTarget=null;
+  function renderLoc(){
+    if (!lastFix) return;
+    var st=upcomingGo(), dest=st?destOf(st):null, tgt=dest&&GEO[dest];
+    var out=$('#loc-out'); out.hidden=false;
+    // nearest known place
+    var nearest=null, nd=1e12; Object.keys(GEO).forEach(function(k){ var d=hav(lastFix,GEO[k]); if (d<nd){nd=d;nearest=k;} });
+    $('#loc-near').innerHTML = nd<400 ? 'You are at <b>'+(NAMES[nearest]||nearest)+'</b>.' : 'Nearest stop in the plan: <b>'+(NAMES[nearest]||nearest)+'</b>, '+fmtDist(nd)+' away.';
+    if (!tgt){ $('#loc-dist').textContent='Next stop not mapped'; $('#loc-sub').textContent=''; return; }
+    var d=hav(lastFix,tgt), br=bearing(lastFix,tgt), walk=Math.round(d/1.25/60);
+    $('#loc-dist').textContent = fmtDist(d)+' to '+(NAMES[dest]||dest);
+    $('#loc-sub').textContent = 'Head '+compass(br)+(d>2500?' · too far to walk, use the train or a car':(walk?' · about '+walk+' min on foot':''));
+    var rot = heading==null ? br : (br-heading); $('#arrow').style.transform='rotate('+rot+'deg)'; $('#arrow').setAttribute('title', heading==null?'Arrow points relative to north (hold phone flat, top = north)':'Arrow points the way');
+    $('#loc-dir').href=gm(dest,'transit'); $('#loc-walk').href=gm(dest,'walking'); $('#loc-uber').href=uber(dest);
+    lastTarget=dest;
+  }
+  $('#locbtn').addEventListener('click', function(){
+    var stx=$('#loc-status');
+    if (!navigator.geolocation){ stx.textContent='This browser cannot read your location.'; return; }
+    stx.textContent='Finding you…';
+    navigator.geolocation.getCurrentPosition(function(p){ lastFix=[p.coords.latitude,p.coords.longitude]; stx.textContent='Location found (accurate to about '+Math.round(p.coords.accuracy)+' m). Updates every 20 seconds while this is open.'; renderLoc(); }, function(e){ stx.textContent='Could not get your location. On iPhone: Settings → Privacy → Location Services → Safari → While Using. Then tap Find me again.'; }, {enableHighAccuracy:true, timeout:15000, maximumAge:5000});
+    if (!window._locWatch) window._locWatch=navigator.geolocation.watchPosition(function(p){ lastFix=[p.coords.latitude,p.coords.longitude]; renderLoc(); }, function(){}, {enableHighAccuracy:true, maximumAge:20000});
+  });
+
+  /* ---------- in-page reminders ---------- */
+  var ab=$('#alertbtn'), as=$('#alert-status'), banner=$('#alert-banner'), fired={};
+  try { fired = JSON.parse(localStorage.getItem('nyc-fired')||'{}')||{}; } catch(e){}
+  function beep(){ try { var ctx=new (window.AudioContext||window.webkitAudioContext)(); var o=ctx.createOscillator(), g=ctx.createGain(); o.connect(g); g.connect(ctx.destination); o.frequency.value=880; g.gain.value=.15; o.start(); setTimeout(function(){ o.frequency.value=1175; },180); setTimeout(function(){ o.stop(); ctx.close(); },420); } catch(e){} }
+  function notify(title, body){
+    banner.hidden=false; banner.innerHTML='<b>'+title+'</b><br>'+body+' <a href="#next">Show</a>'; beep();
+    try { if (navigator.vibrate) navigator.vibrate([300,120,300]); } catch(e){}
+    try { if ('Notification' in window && Notification.permission==='granted') new Notification(title,{body:body,tag:'nyc-'+title}); } catch(e){}
+  }
+  function tick(){
+    var n=Date.now(), list=$$('.day .step[data-at]');
+    list.forEach(function(st,i){
+      var t=new Date(st.getAttribute('data-at')).getTime(), title=$('.t',st).textContent.replace(/Birthday|New time.*|New\b/g,'').trim(), isGo=st.classList.contains('go');
+      var sum=$('.sum',st)?$('.sum',st).textContent:'';
+      [[10,'In 10 minutes: '],[0,'Now: ']].forEach(function(w){
+        var key=i+'-'+w[0], at=t-w[0]*60000;
+        if (!isGo && w[0]===10) return;
+        if (n>=at && n<at+15*60000 && !fired[key] && !st.classList.contains('done')){ fired[key]=1; try{localStorage.setItem('nyc-fired',JSON.stringify(fired));}catch(e){} notify(w[1]+title, sum); }
+      });
+    });
+  }
+  setInterval(tick, 30000);
+  ab.addEventListener('click', function(){
+    if (!('Notification' in window)) { as.textContent='Banners and buzz are on while the page is open. Pop-up notifications are not supported in this browser; add the page to your Home Screen (Share → Add to Home Screen) for those.'; tick(); return; }
+    Notification.requestPermission().then(function(p){
+      as.textContent = p==='granted' ? 'Reminders are on. Keep this page open (or in the background) during the trip.' : 'Banners and buzz are on while the page is open. Pop-up notifications were not allowed; your Calendar alerts still cover you.';
+      ab.textContent = p==='granted' ? 'On' : 'Turn on'; tick();
+    });
+  });
+  if ('Notification' in window && Notification.permission==='granted') ab.textContent='On';
+
+  /* ---------- swipe between days ---------- */
+  var sx=0, sy=0, tracking=false;
+  document.addEventListener('touchstart', function(e){ if (tab!=='plan' || !e.target.closest('.day')) { tracking=false; return; } tracking=true; sx=e.touches[0].clientX; sy=e.touches[0].clientY; }, {passive:true});
+  document.addEventListener('touchend', function(e){
+    if (!tracking) return; tracking=false;
+    var dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
+    if (Math.abs(dx) < 70 || Math.abs(dx) < Math.abs(dy)*1.6) return;
+    var i = days.indexOf(day) + (dx < 0 ? 1 : -1);
+    if (i >= 0 && i < days.length) setDay(days[i]);
+  }, {passive:true});
+
+  /* ---------- QR full screen ---------- */
+  var dlg = $('#qrdlg');
+  $$('.qr img').forEach(function(img){
+    img.style.cursor = 'zoom-in'; img.setAttribute('tabindex','0'); img.setAttribute('role','button');
+    function open(){
+      $('#qrimg').src = img.src; $('#qrimg').alt = img.alt;
+      var fc = img.closest('figure'); $('#qrcap').textContent = fc ? fc.textContent.trim() : img.alt;
+      if (dlg.showModal) dlg.showModal(); else dlg.setAttribute('open','');
+    }
+    img.addEventListener('click', open); img.addEventListener('keydown', function(e){ if (e.key==='Enter') open(); });
+  });
+  var qrHint = document.createElement('p'); qrHint.className = 'qr-hint'; qrHint.textContent = 'Tap a code to make it full screen.';
+  $$('.qr').forEach(function(q){ q.parentNode.insertBefore(qrHint.cloneNode(true), q); });
+  $('#qrclose').addEventListener('click', function(){ dlg.close ? dlg.close() : dlg.removeAttribute('open'); });
+  dlg.addEventListener('click', function(e){ if (e.target === dlg) dlg.close(); });
+
+  /* ---------- hero countdown + next up ---------- */
+  var now = new Date();
+  var start = new Date('2026-11-06T16:30:00-06:00'), end = new Date('2026-11-09T19:30:00-06:00');
+  var num = $('#hc-num'), lbl = $('#hc-lbl'), sub = $('#hero-sub');
+  if (now < start) {
+    var dd = Math.ceil((new Date('2026-11-06T00:00:00-06:00') - now)/86400000);
+    if (dd <= 0) { num.textContent = 'Today'; lbl.textContent = 'we fly to NYC!'; }
+    else { num.textContent = dd; lbl.textContent = dd === 1 ? 'day to go' : 'days to go'; }
+    sub.textContent = 'Deeyan turns 7 in New York!';
+  } else if (now <= end) {
+    var ny = new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'}).format(now);
+    var map = {'2026-11-06':['Day 1','Fly to New York!'],'2026-11-07':['Day 2','Happy 7th birthday, Deeyan!'],'2026-11-08':['Day 3','Boats and bright lights'],'2026-11-09':['Day 4','Dinosaurs, then home']};
+    var m = map[ny] || ['NYC','Have fun!']; num.textContent = m[0]; lbl.textContent = 'of 4'; sub.textContent = m[1];
+  } else { num.textContent = '♥'; lbl.textContent = 'trip done'; sub.textContent = 'Welcome home! Hope Deeyan loved it.'; }
+
+  var steps = $$('.step[data-at]'), next = null;
+  for (var i=0;i<steps.length;i++){ var t = new Date(steps[i].getAttribute('data-at')); if (t.getTime() + 10*60000 >= now.getTime()) { next = steps[i]; break; } }
+  var nl = $('#next-label'), nt = $('#next-title'), ns = $('#next-sub'), nk = $('#next-link'), nd = $('#next-dir');
+  if (!next) { nl.textContent = 'Trip complete'; nt.textContent = 'Welcome home!'; ns.textContent = 'Hope Deeyan loved his birthday trip.'; nk.hidden = true; }
+  else {
+    next.classList.add('now');
+    var tt = $('.time', next), wt = $('.t', next);
+    var tm = tt ? tt.textContent.replace(/(AM|PM).*/, '$1').trim() : '';
+    var dname = {fri:'Fri',sat:'Sat',sun:'Sun',mon:'Mon'}[next.closest('.day').id];
+    nl.textContent = now < start ? 'First up · ' + dname : 'Next up · ' + dname;
+    nt.textContent = tm + ' · ' + (wt ? wt.textContent.replace(/Birthday|New time.*|New\b/g,'').trim() : '');
+    var sm = $('.sum', next); ns.textContent = sm ? sm.textContent : '';
+    nk.setAttribute('href', '#' + (next.id || (next.id = 'step-now')));
+    var q = $('.qdir', next); if (q) { nd.href = q.href; nd.hidden = false; }
+  }
+
+  /* ---------- default day / tab ---------- */
+  var nyToday = new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'}).format(now);
+  var dmap = {'2026-11-06':'fri','2026-11-07':'sat','2026-11-08':'sun','2026-11-09':'mon'};
+  setDay(dmap[nyToday] || (next ? next.closest('.day').id : LS.get('nyc-day','fri')), true);
+  setTab(dmap[nyToday] ? 'plan' : LS.get('nyc-tab','plan'), true);
+
+  /* ---------- checklist (To do) ---------- */
+  var KEY = 'nyc-trip-todos-v2';
+  var boxes = $$('.todo input'); var saved = LS.get(KEY, {});
+  function update(){
+    var n = 0;
+    boxes.forEach(function(b){ b.closest('.todo').classList.toggle('done', b.checked); if (b.checked) n++; });
+    $('#progress').textContent = n + ' of ' + boxes.length + ' done';
+    var left = boxes.length - n, bd = $('#todo-badge'); bd.textContent = left; bd.hidden = left === 0;
+  }
+  boxes.forEach(function(b){ if (saved[b.id]) b.checked = true; b.addEventListener('change', function(){ saved[b.id] = b.checked; LS.set(KEY, saved); update(); }); });
+  update();
+
+  /* ---------- copy buttons ---------- */
+  $$('.copy').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.preventDefault(); var v = btn.getAttribute('data-copy');
+      try { navigator.clipboard.writeText(v).then(function(){ btn.textContent = 'Copied'; setTimeout(function(){ btn.textContent = 'Copy'; }, 1500); }, function(){}); } catch (err) {}
+    });
+  });
+})();
+</script>
+
+</body></html>
