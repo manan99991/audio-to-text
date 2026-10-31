@@ -622,11 +622,11 @@ html.app .appnav{display:grid;grid-template-columns:repeat(5,1fr);position:fixed
     <div class="btns"><a class="btn solid" href="https://intrepidmuseum.org/plan-your-visit/visitor-information/tickets" target="_blank" rel="noopener">Buy tickets</a><a class="btn" href="https://www.google.com/maps/dir/?api=1&amp;destination=Intrepid+Museum+Pier+86+New+York&amp;travelmode=transit" target="_blank" rel="noopener">Directions from here</a></div>
   </div>
   <div class="ticket pending" id="t-msg">
-    <h3>Madison Square Garden Tour <span class="chip">Moved by MSG · get a refund</span></h3>
+    <h3>Madison Square Garden Tour <span class="chip">Cancelled · refund issued</span></h3>
     <dl class="kv">
       <dt>What happened</dt><dd>MSG emailed Oct 30: the Sun Nov 8, 2:00 PM tour is <b>rescheduled to Tue Nov 10, 12:45 PM</b>. You fly home Monday, so it's out.</dd>
-      <dt>Do this</dt><dd>Call <b>Guest Relations 212-465-6225</b> (Sat–Sun 10 AM–8 PM, Mon–Fri 9–8 ET) or reply to the email. Say you can't make Nov 10 and ask for a <b>refund</b>, or a Sunday Nov 8 slot between 12:30 and 2:30 if they have one.</dd>
-      <dt>Paid</dt><dd>$142.00 · refund pending</dd>
+      <dt>Refund</dt><dd><b>Issued by MSG on Oct 31.</b> $142.00 goes back to the card you paid with, usually within 5–10 business days. Watch the card statement; Guest Relations 212-465-6225 if it hasn't landed by Nov 14.</dd>
+      <dt>Paid</dt><dd>$142.00 · refund issued, not yet on the card</dd>
     </dl>
     <div class="btns"><a class="btn solid" href="tel:+12124656225">Call MSG 212-465-6225</a><a class="btn" href="https://www.ticketmaster.com/" target="_blank" rel="noopener">Ticketmaster</a><a class="btn" href="https://www.google.com/maps/dir/?api=1&amp;destination=Madison+Square+Garden&amp;travelmode=transit" target="_blank" rel="noopener">Directions from here</a></div>
   </div>
@@ -727,7 +727,7 @@ html.app .appnav{display:grid;grid-template-columns:repeat(5,1fr);position:fixed
   <label class="todo" for="d1"><input type="checkbox" id="d1"><div class="stack" style="gap:6px"><span class="todo-title">Book LuggageHero (Mon Nov 9)</span><span class="small muted">LuggageHero American Museum · drop-off 9:50 AM · pick-up 2:15 PM · 2 bags.</span><span class="btns"><a class="btn solid" href="https://app.luggagehero.com/" target="_blank" rel="noopener">LuggageHero</a></span></div></label>
   <label class="todo" for="d2"><input type="checkbox" id="d2"><div class="stack" style="gap:6px"><span class="todo-title">Message ONE Dine</span><span class="small muted">OpenTable app → reservation → <b>Send message</b>: "Son's 7th birthday. We are strict vegetarian, no meat, fish or egg. Could you add a candle to his dessert? Window table if possible."</span><span class="btns"><a class="btn solid" href="https://www.opentable.com/one-dine-at-one-world-observatory" target="_blank" rel="noopener">OpenTable</a></span></div></label>
   <label class="todo" for="d3"><input type="checkbox" id="d3"><div class="stack" style="gap:6px"><span class="todo-title">Call the hotel</span><span class="small muted">Give confirmation 1060413358. Ask them to note a <b>late arrival around 12:15 AM</b>, confirm <b>2 queen beds</b>, confirm no extra resort fee, and that they'll hold a cake delivery at the front desk Saturday around 4 PM.</span><span class="btns"><a class="btn solid" href="tel:+17186242211">Call 718-624-2211</a></span></div></label>
-  <label class="todo" for="d4"><input type="checkbox" id="d4"><div class="stack" style="gap:6px"><span class="todo-title">Call MSG for a refund · 212-465-6225 <span class="newtag">New</span></span><span class="small muted">Tour moved to Tue Nov 10 (you're home by then). Ask for a refund of $142, or a Sun Nov 8 slot between 12:30 and 2:30 if one exists.</span><span class="btns"><a class="btn solid" href="tel:+12124656225">Call</a></span></div></label>
+  <label class="todo" for="d4"><input type="checkbox" id="d4"><div class="stack" style="gap:6px"><span class="todo-title">MSG refund ✓ issued Oct 31 · check it lands</span><span class="small muted">$142 back to the card by about Nov 14. Tick this when you see it on the statement.</span><span class="btns"><a class="btn" href="tel:+12124656225">Call MSG if missing</a></span></div></label>
   <label class="todo" for="d10" style="border-color:var(--new);background:var(--new-soft)"><input type="checkbox" id="d10"><div class="stack" style="gap:6px"><span class="todo-title">Book the Intrepid Museum · Sun Nov 8, 2:30 PM <span class="newtag">New</span></span><span class="small muted">2 adults + 1 child, $104. Replaces MSG.</span><span class="btns"><a class="btn solid" href="https://intrepidmuseum.org/plan-your-visit/visitor-information/tickets" target="_blank" rel="noopener">Intrepid tickets</a></span></div></label>
   <label class="todo" for="d5"><input type="checkbox" id="d5"><div class="stack" style="gap:6px"><span class="todo-title">Measure Deeyan (44 inches?)</span><span class="small muted">Under 44 in = rides the subway free. Taller = needs his own tap ($3).</span></div></label>
   <label class="todo" for="d6"><input type="checkbox" id="d6"><div class="stack" style="gap:6px"><span class="todo-title">Southwest check-in · Thu Nov 5, 7:15 PM Chicago time</span><span class="small muted">Check in the minute it opens so you sit together. Check your bag allowance on the boarding pass.</span><span class="btns"><a class="btn solid" href="https://www.southwest.com/air/check-in/" target="_blank" rel="noopener">Check in</a></span></div></label>
@@ -739,7 +739,7 @@ html.app .appnav{display:grid;grid-template-columns:repeat(5,1fr);position:fixed
 <section id="money" class="card stack" aria-labelledby="money-h">
   <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px">
     <h2 id="money-h">Money</h2>
-    <span style="font-family:var(--display);font-weight:800;font-size:22px;color:var(--ok)">$2,733.48 paid</span>
+    <span style="font-family:var(--display);font-weight:800;font-size:22px;color:var(--ok)">$2,591.48 paid</span>
   </div>
   <div style="overflow-x:auto">
   <table>
@@ -748,12 +748,12 @@ html.app .appnav{display:grid;grid-template-columns:repeat(5,1fr);position:fixed
       <tr><td>Hotel (Priceline)</td><td>Paid</td><td class="n">$939.03</td></tr>
       <tr><td>Flights (Southwest)</td><td>Paid</td><td class="n">$801.60</td></tr>
       <tr><td>ONE Dine + observatory</td><td>Paid</td><td class="n">$589.95</td></tr>
-      <tr><td>MSG tour (moved by MSG; refund requested)</td><td>Refund pending</td><td class="n">$142.00</td></tr>
+      <tr><td>MSG tour (cancelled by MSG; refund issued Oct 31)</td><td>Refund on its way</td><td class="n">−$142.00</td></tr>
       <tr><td>Natural History Museum</td><td>Paid</td><td class="n">$126.00</td></tr>
       <tr><td>Statue of Liberty ferry</td><td>Paid</td><td class="n">$69.90</td></tr>
       <tr class="new"><td>Transit Museum (order 14414305)</td><td>Paid</td><td class="n">$40.00</td></tr>
       <tr class="new"><td>Deeyan's adventure book (Staples) <span class="newtag">New</span></td><td>Paid</td><td class="n">$25.00</td></tr>
-      <tr class="total"><td>Paid so far</td><td></td><td class="n">$2,733.48</td></tr>
+      <tr class="total"><td>Paid so far (after MSG refund)</td><td></td><td class="n">$2,591.48</td></tr>
 
       <tr class="new"><td>Intrepid Museum <span class="newtag">New</span></td><td>To book</td><td class="n">$104</td></tr>
       <tr><td>LuggageHero, 2 bags</td><td>To book</td><td class="n">$14–$19</td></tr>
@@ -763,7 +763,7 @@ html.app .appnav{display:grid;grid-template-columns:repeat(5,1fr);position:fixed
       <tr><td>Meals (adult breakfasts, lunches, Ellen's, snacks)</td><td>Trip</td><td class="n">$400–$530</td></tr>
       <tr><td>Souvenirs &amp; treats</td><td>Trip</td><td class="n">$100–$200</td></tr>
       <tr class="total"><td>Still to spend</td><td></td><td class="n">$759–$1,019</td></tr>
-      <tr class="total"><td>Whole trip</td><td></td><td class="n">$3,350–$3,610 after the MSG refund</td></tr>
+      <tr class="total"><td>Whole trip</td><td></td><td class="n">$3,350–$3,610</td></tr>
     </tbody>
   </table>
   </div>
