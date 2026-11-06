@@ -308,9 +308,9 @@ html.app .appnav{display:grid;grid-template-columns:repeat(5,1fr);position:fixed
   <div class="step eat" data-at="2026-11-06T16:00:00-06:00"><div class="time">4:00 PM<small>Eat</small></div><div class="what"><span class="t">Early dinner at home</span><span class="how">Pack vegetarian snacks for the airport and plane. You land late.</span></div></div>
 
   <div class="step go" data-at="2026-11-06T16:30:00-06:00"><div class="time">4:30 PM<small>Leave home</small></div><div class="what"><span class="t">Home → Midway Airport (MDW)</span>
-    <span class="how">Drive about 45–60 min. Be at the airport by <b>5:45 PM</b>.</span>
-    <div class="btns"><a class="btn" href="https://www.google.com/maps/dir/?api=1&amp;destination=Chicago+Midway+International+Airport&amp;travelmode=driving" target="_blank" rel="noopener">Directions from here</a></div></div></div>
-  <div class="step" data-at="2026-11-06T17:45:00-06:00"><div class="time">5:45 PM</div><div class="what"><span class="t">Bags and security at Midway</span><span class="how">Southwest counter, then security. <a class="chip" href="#t-flight">Flight · CMGWXE</a></span></div></div>
+    <span class="how">Drive about 45–60 min. Be at the airport by <b>5:45 PM</b>. Park in the <b>Economy lot (5700 S Cicero)</b> — $15/day, free shuttle every ~10 min, no booking. The same shuttle brings you back Monday night. <b>Snap a photo of your row/aisle</b> so the car's easy to find on the way home.</span>
+    <div class="btns"><a class="btn" href="https://www.google.com/maps/dir/?api=1&amp;destination=Midway+Economy+Parking+5700+S+Cicero+Ave+Chicago&amp;travelmode=driving" target="_blank" rel="noopener">Directions from here</a></div></div></div>
+  <div class="step" data-at="2026-11-06T17:45:00-06:00"><div class="time">5:45 PM</div><div class="what"><span class="t">Bags and security at Midway</span><span class="how">Drop the checked bag at the Southwest counter (already checked in, bag paid), then security. <a class="chip" href="#t-flight">Flight · CMGWXE</a></span></div></div>
   <div class="step" data-at="2026-11-06T19:15:00-06:00"><div class="time">7:15 PM</div><div class="what"><span class="t">Flight WN 2958 takes off</span><span class="how">2 hr 5 min. Lands <b>10:20 PM New York time</b> at LaGuardia <b>Terminal B</b>.</span></div></div>
 
   <div class="step go" data-at="2026-11-06T22:40:00-05:00"><div class="time">10:40 PM<small>Leave airport</small></div><div class="what"><span class="t">LaGuardia → Hotel (free bus + subway)</span>
@@ -564,9 +564,10 @@ html.app .appnav{display:grid;grid-template-columns:repeat(5,1fr);position:fixed
       <dt>Manan Shah</dt><dd class="code">Ticket 5262405020465</dd>
       <dt>Chaitali Shah</dt><dd class="code">Ticket 5262405020466</dd>
       <dt>Deeyan Shah</dt><dd class="code">Ticket 5262405020464</dd>
-      <dt>Seats</dt><dd>Assigned at check-in (Basic fare). Check in <b>Thu Nov 5, 7:15 PM Chicago time</b>.</dd>
+      <dt>Seats</dt><dd>Row 17, together: <b>Deeyan 17F</b> (window) · <b>Manan 17E</b> (middle) · <b>Chaitali 17D</b> (aisle)</dd>
       <dt>Paid</dt><dd>$801.60 (base $714.42 + taxes; partly flight credit)</dd>
-      <dt>Scan at the gate</dt><dd>Boarding passes appear after check-in on Nov 5. Add them to Apple Wallet from the Southwest app.</dd>
+      <dt>Checked bag</dt><dd>1 bag · <b>$45 paid</b></dd>
+      <dt>Checked in ✓</dt><dd><b>Tonight:</b> Gate <b>B25</b> · boarding <b>Group 8</b> · boards <b>6:45 PM</b> (doors close 10 min before the 7:15 departure). Boarding passes are in the <b>Southwest app / Apple Wallet</b> — scan from there at security and the gate. The return flight isn't checked in yet; it opens Sun ~5:55 PM Chicago time.</dd>
     </dl>
     <div class="btns"><a class="btn solid" href="https://www.southwest.com/air/check-in/" target="_blank" rel="noopener">Check in / manage</a><a class="btn" href="tel:+18004359792">Call 1-800-435-9792</a></div>
   </div>
@@ -745,7 +746,7 @@ html.app .appnav{display:grid;grid-template-columns:repeat(5,1fr);position:fixed
 <section id="money" class="card stack" aria-labelledby="money-h">
   <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px">
     <h2 id="money-h">Money</h2>
-    <span style="font-family:var(--display);font-weight:800;font-size:22px;color:var(--ok)">$2,747.48 paid</span>
+    <span style="font-family:var(--display);font-weight:800;font-size:22px;color:var(--ok)">$2,792.48 paid</span>
   </div>
   <div style="overflow-x:auto">
   <table>
@@ -753,6 +754,7 @@ html.app .appnav{display:grid;grid-template-columns:repeat(5,1fr);position:fixed
     <tbody>
       <tr><td>Hotel (Priceline)</td><td>Paid</td><td class="n">$939.03</td></tr>
       <tr><td>Flights (Southwest)</td><td>Paid</td><td class="n">$801.60</td></tr>
+      <tr class="new"><td>Checked bag (1) <span class="newtag">New</span></td><td>Paid</td><td class="n">$45.00</td></tr>
       <tr><td>ONE Dine + observatory</td><td>Paid</td><td class="n">$589.95</td></tr>
       <tr><td>MSG tour (cancelled by MSG; refund issued Oct 31)</td><td>Refund on its way</td><td class="n">−$142.00</td></tr>
       <tr><td>Natural History Museum</td><td>Paid</td><td class="n">$126.00</td></tr>
@@ -760,16 +762,17 @@ html.app .appnav{display:grid;grid-template-columns:repeat(5,1fr);position:fixed
       <tr class="new"><td>Transit Museum (order 14414305)</td><td>Paid</td><td class="n">$40.00</td></tr>
       <tr class="new"><td>Deeyan's adventure book (Staples) <span class="newtag">New</span></td><td>Paid</td><td class="n">$25.00</td></tr>
       <tr class="new"><td>Intrepid Museum (order 4287871) <span class="newtag">New</span></td><td>Paid</td><td class="n">$156.00</td></tr>
-      <tr class="total"><td>Paid so far (after MSG refund)</td><td></td><td class="n">$2,747.48</td></tr>
+      <tr class="total"><td>Paid so far (after MSG refund)</td><td></td><td class="n">$2,792.48</td></tr>
 
+      <tr class="new"><td>Airport parking · Midway Economy lot <span class="newtag">New</span></td><td>Pay there</td><td class="n">$45–$60</td></tr>
       <tr><td>LuggageHero, 2 bags</td><td>To book</td><td class="n">$14–$19</td></tr>
       <tr><td>Ice cream cake</td><td>Sat</td><td class="n">$45–$70</td></tr>
       <tr><td>All subway + bus rides (about 11 taps each; Q70 free; Deeyan free)</td><td>Trip</td><td class="n">$66</td></tr>
       <tr><td>Carousels (Jane's + SeaGlass)</td><td>Trip</td><td class="n">$30</td></tr>
       <tr><td>Meals (adult breakfasts, lunches, Ellen's, snacks)</td><td>Trip</td><td class="n">$400–$530</td></tr>
       <tr><td>Souvenirs &amp; treats</td><td>Trip</td><td class="n">$100–$200</td></tr>
-      <tr class="total"><td>Still to spend</td><td></td><td class="n">$655–$915</td></tr>
-      <tr class="total"><td>Whole trip</td><td></td><td class="n">$3,402–$3,662</td></tr>
+      <tr class="total"><td>Still to spend</td><td></td><td class="n">$700–$975</td></tr>
+      <tr class="total"><td>Whole trip</td><td></td><td class="n">$3,492–$3,767</td></tr>
     </tbody>
   </table>
   </div>
