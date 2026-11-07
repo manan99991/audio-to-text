@@ -90,7 +90,7 @@ ol.route li::before{content:counter(r);display:inline-flex;align-items:center;ju
 .arrive{font-weight:700;color:var(--ok);font-size:15px}
 .backup{font-size:15px;color:var(--muted)}
 .ln{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;border-radius:11px;color:#fff;font-weight:700;font-size:13px;vertical-align:-3px;margin:0 1px}
-.ln.ac{background:var(--ac)} .ln.f{background:var(--f)} .ln.r{background:var(--r)} .ln.g{background:var(--g)} .ln.y{background:var(--y);color:#17223B} .ln.q{background:var(--q)} .ln.m{background:var(--ac)}
+.ln.ac{background:var(--ac)} .ln.f{background:var(--f)} .ln.r{background:var(--r)} .ln.g{background:var(--g)} .ln.y{background:var(--y);color:#17223B} .ln.q{background:var(--q)} .ln.m{background:var(--ac)}.ln.e{background:var(--ac)}
 /* tickets */
 .ticket{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--accent);border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:8px}
 .ticket.pending{border-left-color:var(--warn)}
@@ -395,13 +395,27 @@ html.app .appnav{display:grid;grid-template-columns:repeat(5,1fr);position:fixed
   <div class="step" data-at="2026-11-07T18:15:00-05:00"><div class="time">6:15 PM</div><div class="what"><span class="t">One World Observatory at night <span class="bday">Birthday</span></span><span class="how">102 floors in under a minute. Find the Brooklyn Bridge you walked this morning.</span></div></div>
   <div class="step eat" data-at="2026-11-07T19:00:00-05:00"><div class="time">7:00 PM<small>Eat</small></div><div class="what"><span class="t">Birthday dinner at ONE Dine, 101st floor <span class="bday">Birthday</span></span><span class="how">Dining Experience with a View, party of 3. <b>Tip already paid, don't tip again.</b> Remind the server: strict vegetarian (no meat, fish or egg), and it's his birthday. <a class="chip" href="#t-dine">Reservation</a></span></div></div>
 
-  <div class="step go" data-at="2026-11-07T20:30:00-05:00"><div class="time">8:30 PM<small>Leave</small></div><div class="what"><span class="t">One World Trade Center → Hotel</span>
+  <div class="step go new" data-at="2026-11-07T20:40:00-05:00"><div class="time">8:40 PM<small>Leave</small></div><div class="what"><span class="t">One World → Times Square <span class="newtag">New</span></span>
     <ol class="route">
-      <li><span><b>Walk</b> 6 min to <b>Park Place</b> station.</span></li>
-      <li><span><b>Take</b> the <span class="ln r">2</span> or <span class="ln r">3</span> train <b>toward Brooklyn</b>, 6 stops.</span></li>
-      <li><span><b>Get off</b> at <b>Nevins St</b>. Walk 4 min.</span></li>
+      <li><span><b>Walk</b> 5 min to the <b>World Trade Center</b> station.</span></li>
+      <li><span><b>Take</b> the <span class="ln e">E</span> train <b>uptown toward Queens</b> to <b>42 St–Port Authority</b> — about 15 min, no transfer. You come up right at Times Square.</span></li>
     </ol>
-    <span class="arrive">Arrive about 9:00 PM · bedtime</span>
+    <span class="arrive">Arrive about 9:00 PM</span>
+    <div class="btns"><a class="btn" href="https://www.google.com/maps/dir/?api=1&amp;destination=Times+Square+New+York&amp;travelmode=transit" target="_blank" rel="noopener">Directions from here</a></div></div></div>
+  <div class="step new" data-at="2026-11-07T21:00:00-05:00"><div class="time">9:00 PM</div><div class="what"><span class="t">Times Square lights + Dave &amp; Buster's <span class="newtag">New</span></span>
+    <ol class="route">
+      <li><span><b>Times Square</b>: soak in the lights, screens and characters — free and dazzling at night.</span></li>
+      <li><span><b>Candy stop</b>: <b>M&amp;M's World</b> (3 floors) and <b>Hershey's</b>, both open till ~midnight.</span></li>
+      <li><span><b>Dave &amp; Buster's</b>, 234 W 42nd St — huge arcade, open till <b>2 AM</b>. Birthday games and prizes.</span></li>
+    </ol>
+    <span class="how" style="margin-top:4px">Stay as long as Deeyan's got energy. Arriving late? D&amp;B's number is 646-495-2015.</span>
+    <div class="btns"><a class="btn solid" href="https://www.google.com/maps/dir/?api=1&amp;destination=Dave+and+Busters+234+W+42nd+St+New+York&amp;travelmode=walking" target="_blank" rel="noopener">Walk to Dave &amp; Buster's</a></div></div></div>
+  <div class="step go" data-at="2026-11-07T22:45:00-05:00"><div class="time">~10:45 PM<small>Head back</small></div><div class="what"><span class="t">Times Square → Hotel <span class="chg">Changed</span></span>
+    <ol class="route">
+      <li><span><b>Walk</b> to <b>Times Sq–42 St</b> station.</span></li>
+      <li><span><b>Take</b> the <span class="ln r">2</span> or <span class="ln r">3</span> train <b>toward Brooklyn</b> to <b>Nevins St</b>, then walk 4 min to the hotel.</span></li>
+    </ol>
+    <span class="arrive">Head back whenever you're done — about 35 min to the hotel</span>
     <span class="backup">Backup: taxi from West St, about 20 min, $20–$30.</span>
     <div class="btns"><a class="btn" href="https://www.google.com/maps/dir/?api=1&amp;destination=Holiday+Inn+Brooklyn+Downtown+300+Schermerhorn+St+Brooklyn&amp;travelmode=transit" target="_blank" rel="noopener">Directions from here</a></div></div></div>
 </section>
